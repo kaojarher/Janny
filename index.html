@@ -704,6 +704,350 @@ body::after {
       <span class="btn-label">清除</span>
     </div>
     <div class="ctrl-btn" onclick="stopSpeaking()">
+      <span class="btn-icon">⏹️</span-bar:nth-child(7){animation-delay:.32s;height:20px}
+.wv-bar:nth-child(8){animation-delay:.24s;height:14px}
+.wv-bar:nth-child(9){animation-delay:.16s;height:8px}
+.wv-bar:nth-child(10){animation-delay:.08s;height:4px}
+
+@keyframes wvAnim { 0%,100%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} }
+
+/* ── Control Grid ── */
+.ctrl-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  padding: 6px 14px;
+  flex-shrink: 0;
+}
+
+.ctrl-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  border: 0.5px solid rgba(0,212,255,0.12);
+  background: rgba(5,12,20,0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.ctrl-btn:hover {
+  background: rgba(0,212,255,0.07);
+  border-color: rgba(0,212,255,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,212,255,0.15);
+}
+.ctrl-btn:active { transform: scale(0.96) translateY(0); }
+
+.ctrl-btn.on-green {
+  background: rgba(0,255,136,0.08);
+  border-color: rgba(0,255,136,0.4);
+  box-shadow: 0 0 12px rgba(0,255,136,0.15);
+}
+.ctrl-btn.on-red {
+  background: rgba(255,42,94,0.1);
+  border-color: rgba(255,42,94,0.45);
+  box-shadow: 0 0 14px rgba(255,42,94,0.2);
+  animation: redGlow 1s ease-in-out infinite;
+}
+.ctrl-btn.on-cyan {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.4);
+  box-shadow: 0 0 12px rgba(0,212,255,0.2);
+}
+
+@keyframes redGlow {
+  0%,100%{box-shadow:0 0 10px rgba(255,42,94,0.2)}
+  50%{box-shadow:0 0 24px rgba(255,42,94,0.5)}
+}
+
+.btn-icon { font-size: 20px; line-height: 1; }
+.btn-label { font-size: 10px; color: var(--sub); font-weight: 500; letter-spacing: 0.3px; }
+
+/* ── Volume Row ── */
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 6px;
+  flex-shrink: 0;
+}
+
+.vol-icon { font-size: 14px; color: var(--sub); flex-shrink: 0; }
+
+.vol-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  outline: none;
+  cursor: pointer;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--cyan2), var(--cyan));
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,212,255,0.6);
+  transition: transform 0.1s;
+}
+.vol-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.vol-val { font-family:'Orbitron',monospace; font-size:9px; color:var(--sub); width:26px; text-align:right; }
+
+/* ── Text Input ── */
+.text-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 6px;
+  flex-shrink: 0;
+}
+
+.text-inp {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.4);
+  border: 0.5px solid rgba(0,212,255,0.15);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 11px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.text-inp::placeholder { color: rgba(74,106,132,0.6); }
+.text-inp:focus { border-color: rgba(0,212,255,0.35); }
+
+.send-btn {
+  padding: 8px 13px;
+  background: rgba(0,212,255,0.1);
+  border: 0.5px solid rgba(0,212,255,0.3);
+  border-radius: 10px;
+  color: var(--cyan);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Noto Sans TC', sans-serif;
+  flex-shrink: 0;
+}
+.send-btn:hover { background: rgba(0,212,255,0.2); transform: scale(1.04); }
+
+/* ── Mic Button ── */
+.mic-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0 16px 12px;
+  flex-shrink: 0;
+}
+
+.mic-btn {
+  position: relative;
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--purple), #3d1a8a);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 0 24px rgba(123,47,255,0.45), 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+  user-select: none;
+}
+.mic-btn::before, .mic-btn::after {
+  content: '';
+  position: absolute; inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(123,47,255,0.25);
+  animation: micRipple 2.5s ease-out infinite;
+}
+.mic-btn::after { animation-delay: 1.25s; }
+.mic-btn:hover { transform: scale(1.06); box-shadow: 0 0 36px rgba(123,47,255,0.65), 0 4px 20px rgba(0,0,0,0.4); }
+.mic-btn:active { transform: scale(0.95); }
+.mic-btn.recording {
+  background: linear-gradient(135deg, var(--red), #b01030);
+  box-shadow: 0 0 30px rgba(255,42,94,0.6);
+}
+.mic-btn.recording::before, .mic-btn.recording::after {
+  border-color: rgba(255,42,94,0.3);
+}
+
+@keyframes micRipple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.mic-label { font-size: 10px; color: var(--sub); letter-spacing: 0.3px; }
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 6px 16px 10px;
+  font-size: 9px;
+  color: rgba(74,106,132,0.4);
+  border-top: 0.5px solid rgba(0,212,255,0.06);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.footer a { color: rgba(0,212,255,0.3); text-decoration: none; }
+.footer a:hover { color: rgba(0,212,255,0.6); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 24px; left: 50%;
+  transform: translateX(-50%) translateY(-70px);
+  background: rgba(0,212,255,0.1);
+  border: 0.5px solid rgba(0,212,255,0.35);
+  color: var(--cyan);
+  padding: 7px 22px;
+  border-radius: 20px;
+  font-size: 11px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+  white-space: nowrap;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 16px rgba(0,212,255,0.2);
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Scrollbar for msg ── */
+.msg-display { scrollbar-width: thin; scrollbar-color: rgba(123,47,255,0.4) transparent; }
+
+/* ── Puter login banner ── */
+.puter-banner {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 7px 16px;
+  background: rgba(123,47,255,0.1);
+  border-bottom: 0.5px solid rgba(123,47,255,0.25);
+  flex-shrink: 0;
+}
+.puter-banner.ok {
+  background: rgba(0,255,136,0.06);
+  border-color: rgba(0,255,136,0.2);
+}
+.puter-banner.hidden { display: none; }
+.puter-info { font-size:10px; color:var(--sub); }
+.puter-info span { color: var(--purple2); font-weight:500; }
+.puter-info.ok span { color: var(--green); }
+.puter-action {
+  padding: 4px 12px;
+  border-radius: 10px;
+  border: 0.5px solid rgba(123,47,255,0.45);
+  background: rgba(123,47,255,0.18);
+  color: var(--purple2); font-size:10px; font-weight:600;
+  cursor:pointer; transition:all 0.2s;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.puter-action:hover { background:rgba(123,47,255,0.35); transform:scale(1.04); }
+.puter-action.signout {
+  border-color:rgba(255,42,94,0.3);
+  background:rgba(255,42,94,0.08);
+  color:var(--red);
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="phone">
+
+  <!-- PUTER AUTH BANNER -->
+  <div class="puter-banner" id="puterBanner">
+    <div class="puter-info" id="puterInfo"><span>Puter AI</span> · 點擊登入使用免費AI</div>
+    <button class="puter-action" id="puterBtn">🔑 登入</button>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="sb-left">
+      <div class="sb-time" id="clockEl">00:00</div>
+      <div class="sb-date" id="dateEl">載入中…</div>
+    </div>
+    <div class="sb-right">
+      <div class="battery-wrap">
+        <div class="battery-body">
+          <div class="battery-fill" id="batFill" style="width:80%"></div>
+        </div>
+        <span class="battery-pct" id="batPct">80%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="avatar-area">
+    <div class="avatar-outer" id="avatarOuter">
+      <div class="avatar-ring1"></div>
+      <div class="avatar-ring2"></div>
+      <div class="avatar-core" id="avatarCore" title="長按輸入文字">🤖</div>
+    </div>
+    <div class="ai-label">小 智  A I</div>
+    <div class="ai-status" id="aiStatus">待命中 · 點擊麥克風開始對話</div>
+  </div>
+
+  <!-- EMOJI BAR -->
+  <div class="emoji-bar" id="emojiBar">
+    <span class="emoji-btn" data-e="🤖">🤖</span>
+    <span class="emoji-btn" data-e="😊">😊</span>
+    <span class="emoji-btn" data-e="🤔">🤔</span>
+    <span class="emoji-btn" data-e="😮">😮</span>
+    <span class="emoji-btn" data-e="😎">😎</span>
+    <span class="emoji-btn" data-e="🥰">🥰</span>
+    <span class="emoji-btn" data-e="😂">😂</span>
+    <span class="emoji-btn" data-e="🤩">🤩</span>
+    <span class="emoji-btn" data-e="😴">😴</span>
+    <span class="emoji-btn" data-e="🧐">🧐</span>
+  </div>
+
+  <!-- MESSAGE DISPLAY (30 繁中字空間) -->
+  <div class="msg-display" id="msgDisplay">
+    <div class="msg-row">
+      <span class="msg-tag ai">AI</span>
+      <span class="msg-text">👋 你好！我是小智，有什麼可以幫你的嗎？</span>
+    </div>
+  </div>
+
+  <!-- WAVEFORM -->
+  <div class="waveform" id="waveform">
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+  </div>
+
+  <!-- CONTROL BUTTONS -->
+  <div class="ctrl-grid">
+    <div class="ctrl-btn on-green" id="btnLoud" onclick="adjustVol(10)">
+      <span class="btn-icon">🔊</span>
+      <span class="btn-label">大聲</span>
+    </div>
+    <div class="ctrl-btn" id="btnQuiet" onclick="adjustVol(-10)">
+      <span class="btn-icon">🔉</span>
+      <span class="btn-label">小聲</span>
+    </div>
+    <div class="ctrl-btn" id="btnListen" onclick="toggleListen()">
+      <span class="btn-icon">👂</span>
+      <span class="btn-label">聆聽</span>
+    </div>
+    <div class="ctrl-btn on-green" id="btnStandby" onclick="toggleStandby()">
+      <span class="btn-icon">⚡</span>
+      <span class="btn-label">待命</span>
+    </div>
+    <div class="ctrl-btn" onclick="clearAll()">
+      <span class="btn-icon">🗑️</span>
+      <span class="btn-label">清除</span>
+    </div>
+    <div class="ctrl-btn" onclick="stopSpeaking()">
       <span class="btn-icon">⏹️</span}
 
 /* ── Starfield ── */
