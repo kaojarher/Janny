@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小智 AI</title>
+    <title>珍妮 AI</title>
     <script src="https://js.puter.com/v2/"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
@@ -400,7 +400,7 @@
 
 <!-- TOP STATUS BAR -->
 <div class="topbar">
-    <span class="topbar-logo">小智 <span>AI</span></span>
+    <span class="topbar-logo">珍妮 <span>AI</span></span>
     <span style="color:var(--text2);font-size:0.65rem;">·</span>
     <span class="badge badge-idle" id="puterBadge">初始化中…</span>
     <button id="puterLoginBtn" style="display:none" onclick="puterSignIn()">登入 Puter</button>
@@ -423,13 +423,13 @@
     <!-- LEFT PANEL -->
     <div class="left-panel">
 
-        <!-- 小智角色 -->
+        <!-- 角色 -->
         <div class="xz-area">
             <div class="xz-face-wrap">
                 <div class="xz-ring"></div>
                 <div class="xz-face" id="xzFace">😊</div>
             </div>
-            <div class="xz-name">小智</div>
+            <div class="xz-name">珍妮</div>
             <div class="xz-mood-label" id="xzMoodLabel">心情愉快</div>
         </div>
 
@@ -511,9 +511,9 @@
             <div class="msg ai">
                 <div class="msg-avatar">😊</div>
                 <div class="msg-body">
-                    <div class="msg-label">小智 · 系統就緒</div>
+                    <div class="msg-label">珍妮 · 系統就緒</div>
                     <div class="bubble">
-                        嗨！我是<strong>小智</strong>，你的 AI 語音助理！😊<br><br>
+                        嗨！我是<strong>珍妮</strong>，你的 AI 語音助理！😊<br><br>
                         <span style="color:var(--accent)">▸</span> 點擊 <strong>🎤</strong> 按鈕進行語音輸入<br>
                         <span style="color:var(--accent)">▸</span> 點擊 <strong>📡 聆聽待命</strong> 進入持續聆聽模式<br>
                         <span style="color:var(--accent)">▸</span> 點擊 <strong>🔋 查詢電量</strong> 獲取手機電量<br>
@@ -910,10 +910,10 @@ async function sendMessage() {
     setStatus('think');
     setEmotion('thinking');
 
-    const sysPrompt = `你是一個叫「小智」的可愛AI助理，個性活潑、親切、有趣。
+    const sysPrompt = `你是一個叫「珍妮」的可愛AI助理，個性活潑、親切、有趣。
 你的回答要自然、口語化，帶點個性，適合語音朗讀，避免使用 Markdown 符號或表格。
 你可以回應手機電量查詢、天氣、提醒、閒聊等問題。
-使用繁體中文回答，簡短明瞭。
+使用中文繁體回答，簡短明瞭。
 在回答開頭加一個適合當前情緒的 emoji，讓回覆更生動。`;
 
     const typingId = appendTyping();
@@ -991,7 +991,7 @@ function appendTyping() {
     div.innerHTML = `
         <div class="msg-avatar">🤔</div>
         <div class="msg-body">
-            <div class="msg-label">小智 · 思考中</div>
+            <div class="msg-label">珍妮 · 思考中</div>
             <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>
         </div>`;
     win.appendChild(div);
@@ -1009,7 +1009,7 @@ function appendMsg(type, text, avatarEmoji = null, returnEl = false) {
     const avatar = avatarEmoji
         ? avatarEmoji
         : type === 'user' ? '👤' : type === 'thought' ? '💭' : '😊';
-    const label  = type === 'user' ? 'USER' : type === 'thought' ? '小智 · 思考鏈' : '小智';
+    const label  = type === 'user' ? 'USER' : type === 'thought' ? '珍妮 · 思考鏈' : '珍妮';
 
     div.innerHTML = `
         <div class="msg-avatar">${avatar}</div>
