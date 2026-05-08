@@ -34,7 +34,668 @@ html, body {
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   font-family: 'Noto Sans TC', sans-serif;
+}
 
+/* ── Starfield ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(0,212,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 60%, rgba(123,47,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 10%, rgba(0,255,238,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 80%, rgba(0,212,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 40%, rgba(176,106,255,0.5) 0%, transparent 100%),
+    radial-gradient(2px 2px at 20% 85%, rgba(0,255,136,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 45%, rgba(0,212,255,0.6) 0%, transparent 100%),
+    radial-gradient(2px 2px at 65% 25%, rgba(123,47,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 65%, rgba(0,255,238,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5% 50%, rgba(176,106,255,0.4) 0%, transparent 100%);
+  pointer-events: none;
+  animation: starDrift 20s linear infinite alternate;
+}
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgba(123,47,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 75%, rgba(0,212,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,255,136,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  animation: nebula 12s ease-in-out infinite alternate;
+}
+
+@keyframes starDrift { 0%{opacity:0.6} 100%{opacity:1} }
+@keyframes nebula { 0%{opacity:0.5;transform:scale(1)} 100%{opacity:1;transform:scale(1.05)} }
+
+/* ── Phone Shell ── */
+.phone {
+  width: 360px;
+  height: 720px;
+  background: linear-gradient(160deg, #060e1c 0%, #030810 100%);
+  border-radius: 44px;
+  border: 1.5px solid rgba(0,212,255,0.18);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.8),
+    0 0 40px rgba(0,212,255,0.12),
+    0 0 80px rgba(123,47,255,0.08),
+    inset 0 1px 0 rgba(0,212,255,0.1),
+    inset 0 -1px 0 rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* scan line effect */
+.phone::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+  border-radius: 44px;
+}
+
+/* ── Status Bar ── */
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px 10px;
+  background: rgba(0,0,0,0.4);
+  border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sb-left { display: flex; flex-direction: column; gap: 1px; }
+
+.sb-time {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(0,212,255,0.6), 0 0 30px rgba(0,212,255,0.3);
+  line-height: 1;
+}
+
+.sb-date {
+  font-size: 10px;
+  color: var(--sub);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.sb-right { display: flex; align-items: center; gap: 8px; }
+
+.battery-wrap {
+  display: flex; align-items: center; gap: 5px;
+}
+
+.battery-body {
+  width: 26px; height: 13px;
+  border: 1.5px solid rgba(0,212,255,0.35);
+  border-radius: 3px;
+  padding: 2px;
+  position: relative;
+  background: rgba(0,0,0,0.4);
+}
+
+.battery-body::after {
+  content: '';
+  position: absolute;
+  right: -5px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 6px;
+  background: rgba(0,212,255,0.35);
+  border-radius: 0 2px 2px 0;
+}
+
+.battery-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 1.5s ease, background 1s;
+  background: var(--green);
+}
+
+.battery-pct {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  color: var(--sub);
+}
+
+/* ── Avatar Area ── */
+.avatar-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 20px 10px;
+  flex-shrink: 0;
+}
+
+.avatar-outer {
+  position: relative;
+  width: 86px; height: 86px;
+}
+
+.avatar-ring1, .avatar-ring2 {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,212,255,0.2);
+  animation: ringRotate 8s linear infinite;
+}
+.avatar-ring2 { animation-duration: 5s; animation-direction: reverse; border-color: rgba(123,47,255,0.2); }
+
+.avatar-core {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(0,212,255,0.15), rgba(5,12,20,0.9));
+  border: 2px solid rgba(0,212,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 16px rgba(0,212,255,0.2), inset 0 0 16px rgba(0,212,255,0.05);
+}
+
+.avatar-core:hover { transform: scale(1.05); }
+
+.avatar-outer.state-listen .avatar-core {
+  border-color: var(--red);
+  box-shadow: 0 0 24px rgba(255,42,94,0.5), inset 0 0 16px rgba(255,42,94,0.08);
+  animation: listenPulse 0.7s ease-in-out infinite;
+}
+.avatar-outer.state-think .avatar-core {
+  border-color: var(--amber);
+  box-shadow: 0 0 24px rgba(255,183,0,0.5), inset 0 0 16px rgba(255,183,0,0.08);
+  animation: thinkSpin 1.5s linear infinite;
+}
+.avatar-outer.state-speak .avatar-core {
+  border-color: var(--green);
+  box-shadow: 0 0 24px rgba(0,255,136,0.5), inset 0 0 16px rgba(0,255,136,0.08);
+  animation: speakBounce 0.4s ease-in-out infinite;
+}
+
+@keyframes ringRotate { to { transform: rotate(360deg); } }
+@keyframes listenPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 18px rgba(255,42,94,0.4), inset 0 0 16px rgba(255,42,94,0.06); }
+  50% { transform: scale(1.06); box-shadow: 0 0 32px rgba(255,42,94,0.7), inset 0 0 20px rgba(255,42,94,0.12); }
+}
+@keyframes thinkSpin { to { box-shadow: 0 0 28px rgba(255,183,0,0.6) , 0 0 0 4px rgba(255,183,0,0.08) , inset 0 0 16px rgba(255,183,0,0.1); } }
+@keyframes speakBounce {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.ai-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 5px;
+  margin-top: 10px;
+  text-shadow: 0 0 10px rgba(0,212,255,0.5);
+}
+
+.ai-status {
+  font-size: 10px;
+  color: var(--sub);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+  min-height: 15px;
+  text-align: center;
+}
+
+/* ── Emoji Bar ── */
+.emoji-bar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 16px;
+  flex-shrink: 0;
+}
+
+.emoji-btn {
+  font-size: 17px;
+  padding: 3px 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: rgba(255,255,255,0.03);
+  transition: all 0.15s;
+  user-select: none;
+  line-height: 1;
+}
+.emoji-btn:hover { background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.3); transform: scale(1.2) translateY(-1px); }
+.emoji-btn.active { background: rgba(0,212,255,0.15); border-color: rgba(0,212,255,0.5); transform: scale(1.15); }
+
+/* ── Message Display ── */
+.msg-display {
+  margin: 0 14px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.45);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  min-height: 70px;
+  max-height: 95px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.msg-display::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.msg-display::-webkit-scrollbar { width: 3px; }
+.msg-display::-webkit-scrollbar-thumb { background: rgba(123,47,255,0.5); border-radius: 2px; }
+
+.msg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  animation: msgIn 0.25s ease;
+}
+@keyframes msgIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.msg-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  letter-spacing: 0.5px;
+}
+.msg-tag.ai { background: rgba(0,212,255,0.12); color: var(--cyan); border: 0.5px solid rgba(0,212,255,0.3); }
+.msg-tag.user { background: rgba(123,47,255,0.15); color: var(--purple2); border: 0.5px solid rgba(123,47,255,0.35); }
+
+.msg-text {
+  font-size: 11.5px;
+  color: var(--text);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* ── Waveform ── */
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 30px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.waveform.active { opacity: 1; }
+
+.wv-bar {
+  width: 3.5px;
+  background: linear-gradient(to top, var(--cyan), var(--cyan2));
+  border-radius: 2px;
+  animation: wvAnim 0.7s ease-in-out infinite;
+}
+.wv-bar:nth-child(1){animation-delay:0s;height:4px}
+.wv-bar:nth-child(2){animation-delay:.08s;height:8px}
+.wv-bar:nth-child(3){animation-delay:.16s;height:14px}
+.wv-bar:nth-child(4){animation-delay:.24s;height:20px}
+.wv-bar:nth-child(5){animation-delay:.32s;height:24px}
+.wv-bar:nth-child(6){animation-delay:.40s;height:24px}
+.wv-bar:nth-child(7){animation-delay:.32s;height:20px}
+.wv-bar:nth-child(8){animation-delay:.24s;height:14px}
+.wv-bar:nth-child(9){animation-delay:.16s;height:8px}
+.wv-bar:nth-child(10){animation-delay:.08s;height:4px}
+
+@keyframes wvAnim { 0%,100%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} }
+
+/* ── Control Grid ── */
+.ctrl-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  padding: 6px 14px;
+  flex-shrink: 0;
+}
+
+.ctrl-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  border: 0.5px solid rgba(0,212,255,0.12);
+  background: rgba(5,12,20,0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.ctrl-btn:hover {
+  background: rgba(0,212,255,0.07);
+  border-color: rgba(0,212,255,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,212,255,0.15);
+}
+.ctrl-btn:active { transform: scale(0.96) translateY(0); }
+
+.ctrl-btn.on-green {
+  background: rgba(0,255,136,0.08);
+  border-color: rgba(0,255,136,0.4);
+  box-shadow: 0 0 12px rgba(0,255,136,0.15);
+}
+.ctrl-btn.on-red {
+  background: rgba(255,42,94,0.1);
+  border-color: rgba(255,42,94,0.45);
+  box-shadow: 0 0 14px rgba(255,42,94,0.2);
+  animation: redGlow 1s ease-in-out infinite;
+}
+.ctrl-btn.on-cyan {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.4);
+  box-shadow: 0 0 12px rgba(0,212,255,0.2);
+}
+
+@keyframes redGlow {
+  0%,100%{box-shadow:0 0 10px rgba(255,42,94,0.2)}
+  50%{box-shadow:0 0 24px rgba(255,42,94,0.5)}
+}
+
+.btn-icon { font-size: 20px; line-height: 1; }
+.btn-label { font-size: 10px; color: var(--sub); font-weight: 500; letter-spacing: 0.3px; }
+
+/* ── Volume Row ── */
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 6px;
+  flex-shrink: 0;
+}
+
+.vol-icon { font-size: 14px; color: var(--sub); flex-shrink: 0; }
+
+.vol-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  outline: none;
+  cursor: pointer;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--cyan2), var(--cyan));
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,212,255,0.6);
+  transition: transform 0.1s;
+}
+.vol-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.vol-val { font-family:'Orbitron',monospace; font-size:9px; color:var(--sub); width:26px; text-align:right; }
+
+/* ── Text Input ── */
+.text-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 6px;
+  flex-shrink: 0;
+}
+
+.text-inp {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.4);
+  border: 0.5px solid rgba(0,212,255,0.15);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 11px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.text-inp::placeholder { color: rgba(74,106,132,0.6); }
+.text-inp:focus { border-color: rgba(0,212,255,0.35); }
+
+.send-btn {
+  padding: 8px 13px;
+  background: rgba(0,212,255,0.1);
+  border: 0.5px solid rgba(0,212,255,0.3);
+  border-radius: 10px;
+  color: var(--cyan);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Noto Sans TC', sans-serif;
+  flex-shrink: 0;
+}
+.send-btn:hover { background: rgba(0,212,255,0.2); transform: scale(1.04); }
+
+/* ── Mic Button ── */
+.mic-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0 16px 12px;
+  flex-shrink: 0;
+}
+
+.mic-btn {
+  position: relative;
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--purple), #3d1a8a);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 0 24px rgba(123,47,255,0.45), 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+  user-select: none;
+}
+.mic-btn::before, .mic-btn::after {
+  content: '';
+  position: absolute; inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(123,47,255,0.25);
+  animation: micRipple 2.5s ease-out infinite;
+}
+.mic-btn::after { animation-delay: 1.25s; }
+.mic-btn:hover { transform: scale(1.06); box-shadow: 0 0 36px rgba(123,47,255,0.65), 0 4px 20px rgba(0,0,0,0.4); }
+.mic-btn:active { transform: scale(0.95); }
+.mic-btn.recording {
+  background: linear-gradient(135deg, var(--red), #b01030);
+  box-shadow: 0 0 30px rgba(255,42,94,0.6);
+}
+.mic-btn.recording::before, .mic-btn.recording::after {
+  border-color: rgba(255,42,94,0.3);
+}
+
+@keyframes micRipple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.mic-label { font-size: 10px; color: var(--sub); letter-spacing: 0.3px; }
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 6px 16px 10px;
+  font-size: 9px;
+  color: rgba(74,106,132,0.4);
+  border-top: 0.5px solid rgba(0,212,255,0.06);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.footer a { color: rgba(0,212,255,0.3); text-decoration: none; }
+.footer a:hover { color: rgba(0,212,255,0.6); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 24px; left: 50%;
+  transform: translateX(-50%) translateY(-70px);
+  background: rgba(0,212,255,0.1);
+  border: 0.5px solid rgba(0,212,255,0.35);
+  color: var(--cyan);
+  padding: 7px 22px;
+  border-radius: 20px;
+  font-size: 11px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+  white-space: nowrap;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 16px rgba(0,212,255,0.2);
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Scrollbar for msg ── */
+.msg-display { scrollbar-width: thin; scrollbar-color: rgba(123,47,255,0.4) transparent; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="phone">
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="sb-left">
+      <div class="sb-time" id="clockEl">00:00</div>
+      <div class="sb-date" id="dateEl">載入中…</div>
+    </div>
+    <div class="sb-right">
+      <div class="battery-wrap">
+        <div class="battery-body">
+          <div class="battery-fill" id="batFill" style="width:80%"></div>
+        </div>
+        <span class="battery-pct" id="batPct">80%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="avatar-area">
+    <div class="avatar-outer" id="avatarOuter">
+      <div class="avatar-ring1"></div>
+      <div class="avatar-ring2"></div>
+      <div class="avatar-core" id="avatarCore" title="長按輸入文字">🤖</div>
+    </div>
+    <div class="ai-label">小 智  A I</div>
+    <div class="ai-status" id="aiStatus">待命中 · 點擊麥克風開始對話</div>
+  </div>
+
+  
+
+  <!-- MESSAGE DISPLAY (30 繁中字空間) -->
+  <div class="msg-display" id="msgDisplay">
+    <div class="msg-row">
+      <span class="msg-tag ai">AI</span>
+      <span class="msg-text">👋 你好！我是小智，有什麼可以幫你的嗎？</span>
+    </div>
+  </div>
+
+  <!-- WAVEFORM -->
+  <div class="waveform" id="waveform">
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+    <div class="wv-bar"></div><div class="wv-bar"></div>
+  </div>
+
+  <!-- CONTROL BUTTONS -->
+  <div class="ctrl-grid">
+    <div class="ctrl-btn on-green" id="btnLoud" onclick="adjustVol(10)">
+      <span class="btn-icon">🔊</span>
+      <span class="btn-label">大聲</span>
+    </div>
+    <div class="ctrl-btn" id="btnQuiet" onclick="adjustVol(-10)">
+      <span class="btn-icon">🔉</span>
+      <span class="btn-label">小聲</span>
+    </div>
+    <div class="ctrl-btn" id="btnListen" onclick="toggleListen()">
+      <span class="btn-icon">👂</span>
+      <span class="btn-label">聆聽</span>
+    </div>
+    <div class="ctrl-btn on-green" id="btnStandby" onclick="toggleStandby()">
+      <span class="btn-icon">⚡</span>
+      <span class="btn-label">待命</span>
+    </div>
+    <div class="ctrl-btn" onclick="clearAll()">
+      <span class="btn-icon">🗑️</span>
+      <span class="btn-label">清除</span>
+    </div>
+    <div class="ctrl-btn" onclick="stopSpeaking()">
+      <span class="btn-icon">⏹️</span>
+      <span class="btn-label">停止</span>
+    </div>
+  </div>
+
+  <!-- VOLUME SLIDER -->
+  <div class="vol-row">
+    <span class="vol-icon">🔇</span>
+    <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80"
+      oninput="setVolume(this.value)">
+    <span class="vol-icon">🔊</span>
+    <span class="vol-val" id="volVal">80%</span>
+  </div>
+
+  <!-- TEXT INPUT -->
+  <div class="text-input-row">
+    <input class="text-inp" id="textInput" placeholder="輸入文字訊息…" maxlength="100"
+      onkeydown="if(event.key==='Enter')sendText()">
+    <button class="send-btn" onclick="sendText()">發送</button>
+  </div>
+
+  <!-- MIC -->
+  <div class="mic-area">
+    <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+    <div class="mic-label" id="micLabel">點擊開始語音輸入</div>
+  </div>
+
+  <div class="footer">
+    小智 AI &nbsp;·&nbsp; Powered by <a href="https://puter.com" target="_blank">Puter AI</a>
+    &nbsp;·&nbsp; <a href="https://github.com" target="_blank">GitHub Pages</a>
+    &nbsp;·&nbsp; 台灣繁體中文
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+/* ═══════════════════════════════════════
+   小智 AI - 主程式
+═══════════════════════════════════════ */
+
+// ── State ──
+var VOL      = 0.8;
+var STANDBY  = true;
+var LISTEN   = fa
         /* ── 小智表情螢幕 ── */
         .xiaozhi-face {
             height: 160px; background: #1a1a1a;
@@ -192,7 +853,7 @@ function stopListening() {
 
 // --- 表情與聊天邏輯 ---
 const EMOJIS = {
-    IDLE: '🤖',
+    IDLE: '😊',
     LISTENING: '👂',
     THINKING: '🤔',
     HAPPY: '😊',
