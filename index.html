@@ -1,39 +1,39 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小智 AI - 語音智慧伴侶</title>
-    <script src="https://js.puter.com/v2/"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --body-bg: #f0f4f8;
-            --xiaozhi-white: #ffffff;
-            --xiaozhi-blue: #00a8ff;
-            --xiaozhi-red: #ff4d6d;
-            --text-main: #2c3e50;
-            --shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小智 AI · 智慧語音助手</title>
+<script src="https://js.puter.com/v2/"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --c0: #020408;
+  --c1: #050c14;
+  --c2: #0a1628;
+  --cyan: #00d4ff;
+  --cyan2: #00ffee;
+  --purple: #7b2fff;
+  --purple2: #b06aff;
+  --green: #00ff88;
+  --red: #ff2a5e;
+  --amber: #ffb700;
+  --text: #c8dff0;
+  --sub: #4a6a84;
+  --border: rgba(0,212,255,0.12);
+  --glow-c: 0 0 20px rgba(0,212,255,0.4);
+  --glow-p: 0 0 20px rgba(123,47,255,0.5);
+}
 
-        body {
-            font-family: 'Quicksand', 'Noto Sans TC', sans-serif;
-            background: var(--body-bg);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container {
-            width: 95%; max-width: 500px; height: 90vh;
-            background: var(--xiaozhi-white);
-            border-radius: 40px; box-shadow: var(--shadow);
-            display: flex; flex-direction: column;
-            position: relative; border: 8px solid #fff;
-        }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--c0);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  font-family: 'Noto Sans TC', sans-serif;
 
         /* ── 小智表情螢幕 ── */
         .xiaozhi-face {
@@ -110,7 +110,7 @@
 
 <div class="container">
     <div class="xiaozhi-face">
-        <div id="emojiDisplay" class="bounce">🤖</div>
+        <div id="emojiDisplay" class="bounce">😊</div>
     </div>
 
     <div class="chat-window" id="chatWindow">
