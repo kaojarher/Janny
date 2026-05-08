@@ -892,7 +892,7 @@ async function askAI(text){
     if(text) userContent.push({ type:'text', text:text });
     clearImage();
   } else {
-    userContent = text;
+    userContent = text || '';
   }
 
   history.push({ role:'user', content: userContent });
@@ -901,22 +901,73 @@ async function askAI(text){
 
   var msgs = history.slice(-10);
   var answer = '';
+  var source = '';
 
-  try {
-    if(typeof puter !== 'undefined' && puter.ai){
-      var puterMsgs = [{ role:'system', content:SYS_PROMPT }].concat(msgs);
-      setStatus('🔗 連線 Puter AI…');
-      var res = await puter.ai.chat(puterMsgs, { model: currentModel, testMode: false });
+  // ① Puter AI 已登入模式（正式配額）
+  if(!answer && PUTER_LOGGED_IN && typeof puter !== 'undefined' && puter.ai){
+    try {
+      setStatus('🔗 連線 Puter AI（登入模式）…');
+      var res = await puter.ai.chat(msgs, {
+        model: currentModel,
+        system: SYS_PROMPT,
+        testMode: false
+      });
       answer = parsePuterResponse(res);
-      if(!answer) throw new Error('Puter 回傳空值');
+      source = 'Puter(登入)';
+      if(!answer) throw new Error('回傳空值');
+    } catch(e1){
+      console.warn('[Puter 登入]', e1.message);
+      answer = '';
     }
-  } catch(e1){
-    console.warn('[Puter]', e1.message);
-    setStatus('🔄 切換備用模式…');
-    answer = '⚠️ AI 暫時無法連線，請確認是否已登入 Puter，或稍後再試。';
   }
 
-  if(!answer){ answer = '⚠️ 目前無法連線，請確認網路後再試。'; }
+  // ② Puter AI 匿名模式（免登入，有速率限制）
+  if(!answer && typeof puter !== 'undefined' && puter.ai){
+    try {
+      setStatus('🔗 連線 Puter AI（匿名模式）…');
+      // 匿名模式只支援 gpt-4o-mini
+      var anonRes = await puter.ai.chat(msgs, {
+        model: 'gpt-4o-mini',
+        system: SYS_PROMPT,
+        testMode: true
+      });
+      answer = parsePuterResponse(anonRes);
+      source = 'Puter(匿名)';
+      if(!answer) throw new Error('回傳空值');
+    } catch(e2){
+      console.warn('[Puter 匿名]', e2.message);
+      answer = '';
+    }
+  }
+
+  // ③ Anthropic API 直接呼叫（fallback）
+  if(!answer){
+    try {
+      setStatus('🔄 切換 Anthropic API…');
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 300,
+          system: SYS_PROMPT,
+          messages: msgs
+        })
+      });
+      if(resp.ok){
+        var d = await resp.json();
+        if(d.content && d.content[0] && d.content[0].text){
+          answer = d.content[0].text.trim();
+          source = 'Anthropic';
+        }
+      }
+    } catch(e3){
+      console.warn('[Anthropic]', e3.message);
+    }
+  }
+
+  console.log('[AI Source]', source, '|', (answer||'').substring(0,60));
+  if(!answer){ answer = '⚠️ 目前所有連線皆失敗，請確認網路或稍後再試。'; }
 
   // 解析 CoT：[思考] ... [回答] ...
   var thoughtMatch = /\[思考\]([\s\S]*?)(?=\[回答\]|$)/i.exec(answer);
