@@ -1,0 +1,2445 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雲端桌面系統 v2 - Windows XP 風格</title>
+
+    <!-- Puter.js SDK -->
+    <script src="https://js.puter.com/v2/" async>
+    </script>
+
+    <style>
+        :root {
+            /* Windows XP Luna 主題色彩 */
+            --xp-blue: #0055e5;
+            --xp-blue-light: #3c8cff;
+            --xp-blue-dark: #003bb3;
+            --xp-taskbar: #2259da;
+            --xp-taskbar-light: #3d7eff;
+            --xp-taskbar-dark: #1a3f9e;
+            --xp-start-green: #4c9a2e;
+            --xp-start-green-light: #5cb838;
+            --xp-start-green-dark: #3a7a1e;
+            --xp-window-bg: #ece9d8;
+            --xp-window-title-active: #0a246a;
+            --xp-window-title-inactive: #7b8cb0;
+            --xp-window-border: #0054e3;
+            --xp-window-border-inactive: #7f9cdb;
+            --xp-desktop-bg: #3a6ea5;
+            --xp-white: #ffffff;
+            --xp-text: #000000;
+            --xp-text-secondary: #333333;
+            --xp-shadow: rgba(0, 0, 0, 0.3);
+            --xp-highlight: #3168d5;
+            --xp-menu-hover: #3168d5;
+            --xp-separator: #adadad;
+            --xp-tray-bg: #1e90ff;
+            --xp-button-face: #ece9d8;
+            --xp-button-highlight: #ffffff;
+            --xp-button-shadow: #aca899;
+            --xp-button-dark-shadow: #716f64;
+
+            /* 響應式變數 */
+            --desktop-icon-size: 48px;
+            --desktop-icon-font: 12px;
+            --desktop-grid-gap: 10px;
+            --taskbar-height: 42px;
+            --start-menu-width: 380px;
+            --window-min-width: 300px;
+            --window-min-height: 200px;
+            --font-size-base: 13px;
+            --font-size-menu: 13px;
+            --font-size-title: 13px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Tahoma', 'Microsoft JhengHei', '微軟正黑體', 'Noto Sans TC', sans-serif;
+            font-size: var(--font-size-base);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: var(--xp-desktop-bg);
+            cursor: default;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        /* ============ 桌面 ============ */
+        #desktop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: var(--taskbar-height);
+            background: linear-gradient(180deg, #5b8ec9 0%, #3a6ea5 15%, #2d5f8a 40%, #1e4d75 70%, #1a3d5c 100%);
+            overflow: hidden;
+            z-index: 0;
+            padding: 20px;
+            display: grid;
+            grid-auto-columns: 85px;
+            grid-auto-rows: 95px;
+            grid-template-columns: repeat(auto-fill, 85px);
+            grid-template-rows: repeat(auto-fill, 95px);
+            gap: var(--desktop-grid-gap);
+            justify-content: start;
+            align-content: start;
+            align-items: start;
+        }
+
+        /* 桌面圖標 */
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.1s ease;
+            text-align: center;
+            width: 80px;
+            min-height: 85px;
+            position: relative;
+            z-index: 1;
+            gap: 4px;
+        }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .desktop-icon:active,
+        .desktop-icon.selected {
+            background: rgba(49, 104, 213, 0.5);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        .desktop-icon.double-clicked {
+            background: rgba(49, 104, 213, 0.6);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+        .desktop-icon .icon-img {
+            width: var(--desktop-icon-size);
+            height: var(--desktop-icon-size);
+            font-size: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .desktop-icon .icon-label {
+            color: #ffffff;
+            font-size: var(--desktop-icon-font);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+            line-height: 1.3;
+            word-wrap: break-word;
+            max-width: 76px;
+            text-align: center;
+        }
+
+        /* ============ 任務欄 ============ */
+        #taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--taskbar-height);
+            background: linear-gradient(180deg,
+                    var(--xp-taskbar-light) 0%,
+                    var(--xp-taskbar) 8%,
+                    var(--xp-taskbar) 35%,
+                    var(--xp-taskbar-dark) 85%,
+                    #14367a 100%);
+            display: flex;
+            align-items: center;
+            z-index: 9999;
+            padding: 0 4px;
+            gap: 3px;
+            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.4);
+            border-top: 1px solid #5a8fe8;
+        }
+
+        /* 開始按鈕 */
+        #start-button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 14px 4px 10px;
+            height: 32px;
+            background: linear-gradient(180deg,
+                    var(--xp-start-green-light) 0%,
+                    var(--xp-start-green) 30%,
+                    var(--xp-start-green-dark) 90%);
+            border: none;
+            border-radius: 0 12px 12px 0;
+            cursor: pointer;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.1s;
+            flex-shrink: 0;
+            position: relative;
+        }
+        #start-button:hover {
+            background: linear-gradient(180deg,
+                    #6cc942 0%,
+                    #5cb838 30%,
+                    #4a9e2a 90%);
+        }
+        #start-button:active,
+        #start-button.active {
+            background: linear-gradient(180deg,
+                    #3a7a1e 0%,
+                    #2d6016 50%,
+                    #3a7a1e 100%);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            transform: translateY(1px);
+        }
+        #start-button .start-icon {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        /* 任務欄分隔線 */
+        .taskbar-separator {
+            width: 1px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.25);
+            flex-shrink: 0;
+            margin: 0 2px;
+        }
+
+        /* 快速啟動區 */
+        #quick-launch {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .quick-launch-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 18px;
+            transition: background 0.1s;
+            color: #fff;
+        }
+        .quick-launch-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 任務欄視窗按鈕 */
+        #taskbar-windows {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            min-width: 0;
+            padding: 0 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        #taskbar-windows::-webkit-scrollbar {
+            display: none;
+        }
+        .taskbar-window-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 12px;
+            height: 26px;
+            min-width: 120px;
+            max-width: 180px;
+            background: linear-gradient(180deg, #3d7eff 0%, #2a5fd4 40%, #1e4db8 100%);
+            border: 1px solid #1a3f8a;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+            transition: all 0.1s;
+        }
+        .taskbar-window-btn:hover {
+            background: linear-gradient(180deg, #5598ff 0%, #3d7eff 40%, #2a5fd4 100%);
+        }
+        .taskbar-window-btn.active {
+            background: linear-gradient(180deg, #1e4db8 0%, #163d8f 50%, #1e4db8 100%);
+            border-color: #0f2d6b;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 系統匣 */
+        #system-tray {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+            padding: 2px 8px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 2px;
+            height: 30px;
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        #system-tray .tray-icon {
+            font-size: 16px;
+            cursor: pointer;
+            color: #fff;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        #system-tray .tray-icon:hover {
+            opacity: 1;
+        }
+        #system-clock {
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: default;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+
+        /* ============ 開始選單 ============ */
+        #start-menu {
+            position: absolute;
+            bottom: var(--taskbar-height);
+            left: 4px;
+            width: var(--start-menu-width);
+            max-width: 95vw;
+            background: #ffffff;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 3px -2px 15px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #1a3f8a;
+        }
+        #start-menu.visible {
+            display: flex;
+        }
+        #start-menu .start-header {
+            background: linear-gradient(180deg, #2b6fd4 0%, #1e5cba 100%);
+            padding: 10px 16px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 55px;
+        }
+        #start-menu .start-header .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 2px solid #fff;
+            flex-shrink: 0;
+        }
+        #start-menu .start-body {
+            display: flex;
+            flex: 1;
+            min-height: 200px;
+        }
+        #start-menu .start-body .start-programs {
+            flex: 1;
+            padding: 6px 0;
+            background: #ffffff;
+            border-right: 1px solid #d5d5d5;
+        }
+        #start-menu .start-body .start-programs .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: var(--font-size-menu);
+            transition: all 0.08s;
+            white-space: nowrap;
+            color: #000;
+        }
+        #start-menu .start-body .start-programs .menu-item:hover {
+            background: var(--xp-menu-hover);
+            color: #fff;
+        }
+        #start-menu .start-body .start-programs .menu-item .menu-icon {
+            font-size: 22px;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        #start-menu .start-body .start-programs .menu-separator {
+            height: 1px;
+            background: #d5d5d5;
+            margin: 4px 12px;
+        }
+        #start-menu .start-footer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            background: #f0f0f0;
+            border-top: 1px solid #d5d5d5;
+            transition: background 0.1s;
+        }
+        #start-menu .start-footer:hover {
+            background: #e0e0e0;
+        }
+
+        /* ============ 視窗系統 ============ */
+        .window-container {
+            position: absolute;
+            min-width: var(--window-min-width);
+            min-height: var(--window-min-height);
+            background: var(--xp-window-bg);
+            border-radius: 8px;
+            box-shadow: 2px 4px 18px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid var(--xp-window-border);
+            transition: box-shadow 0.2s;
+        }
+        .window-container.focused {
+            z-index: 500;
+            border-color: var(--xp-window-border);
+            box-shadow: 3px 5px 22px rgba(0, 0, 0, 0.6);
+        }
+        .window-container.unfocused {
+            z-index: 100;
+            border-color: var(--xp-window-border-inactive);
+            box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.35);
+        }
+        .window-container.maximized {
+            border-radius: 0;
+            border: none;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: calc(100% - var(--taskbar-height)) !important;
+            z-index: 500;
+        }
+        .window-container.minimized {
+            display: none;
+        }
+        .window-container.dragging {
+            opacity: 0.85;
+            transition: none;
+        }
+
+        /* 視窗標題列 */
+        .window-titlebar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(180deg,
+                    #3568d4 0%,
+                    #1e4fb8 3%,
+                    #0a3d9e 40%,
+                    #0a3d9e 60%,
+                    #1e4fb8 97%,
+                    #3568d4 100%);
+            padding: 4px 4px 4px 10px;
+            cursor: move;
+            min-height: 30px;
+            gap: 6px;
+            flex-shrink: 0;
+            touch-action: none;
+        }
+        .window-container.unfocused .window-titlebar {
+            background: linear-gradient(180deg,
+                    #8ba8d8 0%,
+                    #7b9ac8 3%,
+                    #6a8ab8 40%,
+                    #6a8ab8 60%,
+                    #7b9ac8 97%,
+                    #8ba8d8 100%);
+        }
+        .window-titlebar .window-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .window-titlebar .window-title {
+            flex: 1;
+            color: #ffffff;
+            font-size: var(--font-size-title);
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .window-container.unfocused .window-titlebar .window-title {
+            color: #e0e0e0;
+        }
+        .window-titlebar .titlebar-buttons {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .titlebar-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.1s;
+            color: #fff;
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.25) 0%,
+                    rgba(255, 255, 255, 0.05) 50%,
+                    rgba(0, 0, 0, 0.15) 100%);
+            line-height: 1;
+        }
+        .titlebar-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        .titlebar-btn.close-btn {
+            background: linear-gradient(180deg, #e08040 0%, #c04030 50%, #a02020 100%);
+            border-color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .titlebar-btn.close-btn:hover {
+            background: linear-gradient(180deg, #f09050 0%, #d05040 50%, #b03030 100%);
+        }
+
+        /* 視窗內容 */
+        .window-content {
+            flex: 1;
+            overflow: auto;
+            padding: 12px;
+            background: #ffffff;
+            position: relative;
+            font-size: var(--font-size-base);
+            color: var(--xp-text);
+        }
+        .window-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* ============ 對話框/儲存選擇面板 ============ */
+        .storage-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 10px;
+        }
+        .storage-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            border: 2px solid #c0c0c0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+            font-size: 14px;
+        }
+        .storage-option:hover {
+            border-color: var(--xp-blue);
+            background: #eef5ff;
+            box-shadow: 0 2px 8px rgba(0, 85, 229, 0.2);
+            transform: translateY(-1px);
+        }
+        .storage-option .storage-icon {
+            font-size: 40px;
+            flex-shrink: 0;
+            width: 50px;
+            text-align: center;
+        }
+        .storage-option .storage-info h4 {
+            margin: 0 0 3px;
+            font-size: 15px;
+            color: #1a1a1a;
+        }
+        .storage-option .storage-info span {
+            font-size: 12px;
+            color: #666;
+        }
+        .storage-option.connected {
+            border-color: #4c9a2e;
+            background: #f0faf0;
+        }
+        .storage-option.connected::after {
+            content: '✓ 已連線';
+            color: #4c9a2e;
+            font-weight: bold;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        /* 檔案列表 */
+        .file-list {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .file-list th {
+            background: #e8e8e8;
+            padding: 7px 10px;
+            text-align: left;
+            border-bottom: 2px solid #c0c0c0;
+            font-weight: bold;
+            font-size: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .file-list td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .file-list tr:hover td {
+            background: #eef5ff;
+        }
+        .file-list .file-icon {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+        .file-list .file-name {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        .file-list .file-size {
+            color: #888;
+            text-align: right;
+        }
+
+        /* 按鈕 */
+        .btn {
+            padding: 7px 18px;
+            border: 1px solid #888;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            background: #ece9d8;
+            color: #000;
+            transition: all 0.1s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
+        .btn:hover {
+            background: #e0dcc8;
+            border-color: #666;
+        }
+        .btn:active {
+            background: #d0ccb8;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(180deg, #5b9cf5 0%, #3178d4 100%);
+            color: #fff;
+            border-color: #1a5ab8;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(180deg, #6babff 0%, #4188e4 100%);
+        }
+
+        /* ============ 開始選單遮罩 ============ */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9998;
+            display: none;
+            cursor: default;
+        }
+        #start-overlay.visible {
+            display: block;
+        }
+
+        /* ============ 通知提示 ============ */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            background: #333;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+            max-width: 350px;
+            pointer-events: none;
+        }
+        @keyframes toastIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes toastOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        /* ============ 響應式設計 - 平板 ============ */
+        @media (max-width: 1024px) {
+            :root {
+                --desktop-icon-size: 40px;
+                --desktop-icon-font: 11px;
+                --desktop-grid-gap: 6px;
+                --taskbar-height: 38px;
+                --start-menu-width: 320px;
+                --window-min-width: 260px;
+                --window-min-height: 180px;
+                --font-size-base: 12px;
+                --font-size-menu: 12px;
+                --font-size-title: 12px;
+            }
+            #desktop {
+                padding: 14px;
+                grid-auto-columns: 72px;
+                grid-auto-rows: 80px;
+                grid-template-columns: repeat(auto-fill, 72px);
+                grid-template-rows: repeat(auto-fill, 80px);
+            }
+            .desktop-icon {
+                width: 68px;
+                min-height: 72px;
+                padding: 4px 6px;
+            }
+            .desktop-icon .icon-label {
+                max-width: 62px;
+            }
+            .taskbar-window-btn {
+                min-width: 80px;
+                max-width: 130px;
+                font-size: 10px;
+                padding: 3px 8px;
+                height: 22px;
+            }
+            #start-button {
+                font-size: 12px;
+                padding: 3px 10px 3px 7px;
+                height: 28px;
+            }
+            #system-clock {
+                font-size: 10px;
+            }
+            .window-titlebar {
+                min-height: 26px;
+                padding: 3px 3px 3px 8px;
+            }
+            .titlebar-btn {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+            .titlebar-btn.close-btn {
+                font-size: 12px;
+            }
+        }
+
+        /* ============ 響應式設計 - 手機 ============ */
+        @media (max-width: 768px) {
+            :root {
+                --desktop-icon-size: 34px;
+                --desktop-icon-font: 10px;
+                --desktop-grid-gap: 4px;
+                --taskbar-height: 36px;
+                --start-menu-width: 100vw;
+                --window-min-width: 200px;
+                --window-min-height: 150px;
+                --font-size-base: 11px;
+                --font-size-menu: 11px;
+                --font-size-title: 11px;
+            }
+            #desktop {
+                padding: 8px;
+                grid-auto-columns: 60px;
+                grid-auto-rows: 68px;
+                grid-template-columns: repeat(auto-fill, 60px);
+                grid-template-rows: repeat(auto-fill, 68px);
+                gap: 3px;
+            }
+            .desktop-icon {
+                width: 56px;
+                min-height: 60px;
+                padding: 3px 4px;
+                border-radius: 6px;
+            }
+            .desktop-icon .icon-label {
+                max-width: 50px;
+                font-size: 9px;
+            }
+            .desktop-icon .icon-img {
+                font-size: 30px;
+            }
+            .taskbar-window-btn {
+                min-width: 60px;
+                max-width: 90px;
+                font-size: 9px;
+                padding: 2px 5px;
+                height: 20px;
+                gap: 2px;
+            }
+            #start-button {
+                font-size: 11px;
+                padding: 2px 8px 2px 5px;
+                height: 26px;
+                border-radius: 0 8px 8px 0;
+            }
+            #start-button .start-icon {
+                font-size: 16px;
+            }
+            #system-clock {
+                font-size: 9px;
+            }
+            #system-tray {
+                gap: 2px;
+                padding: 2px 4px;
+                height: 26px;
+            }
+            #quick-launch {
+                gap: 0px;
+            }
+            .quick-launch-icon {
+                width: 22px;
+                height: 22px;
+                font-size: 14px;
+            }
+            .window-container {
+                border-radius: 4px;
+                border-width: 1px;
+            }
+            .window-container.maximized {
+                border-radius: 0;
+                border: none;
+            }
+            .window-titlebar {
+                min-height: 24px;
+                padding: 2px 2px 2px 6px;
+                gap: 3px;
+            }
+            .titlebar-btn {
+                width: 18px;
+                height: 18px;
+                font-size: 9px;
+                border-radius: 3px;
+            }
+            .titlebar-btn.close-btn {
+                font-size: 10px;
+            }
+            .window-content {
+                padding: 8px;
+            }
+            #start-menu {
+                left: 0;
+                border-radius: 6px 6px 0 0;
+            }
+            #start-menu .start-header {
+                font-size: 13px;
+                padding: 8px 12px;
+                min-height: 44px;
+            }
+            #start-menu .start-header .user-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 22px;
+            }
+            #start-menu .start-body .start-programs .menu-item {
+                padding: 7px 14px;
+                font-size: 11px;
+                gap: 7px;
+            }
+            #start-menu .start-body .start-programs .menu-item .menu-icon {
+                font-size: 18px;
+                width: 22px;
+            }
+            .storage-option {
+                padding: 12px;
+                gap: 10px;
+                font-size: 12px;
+            }
+            .storage-option .storage-icon {
+                font-size: 30px;
+                width: 36px;
+            }
+            .storage-option .storage-info h4 {
+                font-size: 13px;
+            }
+            .storage-option .storage-info span {
+                font-size: 10px;
+            }
+        }
+
+        /* ============ 極小螢幕 ============ */
+        @media (max-width: 400px) {
+            :root {
+                --desktop-icon-size: 28px;
+                --desktop-icon-font: 9px;
+                --desktop-grid-gap: 2px;
+                --taskbar-height: 32px;
+            }
+            #desktop {
+                padding: 4px;
+                grid-auto-columns: 50px;
+                grid-auto-rows: 56px;
+                grid-template-columns: repeat(auto-fill, 50px);
+                grid-template-rows: repeat(auto-fill, 56px);
+            }
+            .desktop-icon {
+                width: 46px;
+                min-height: 50px;
+                padding: 2px 3px;
+            }
+            .desktop-icon .icon-img {
+                font-size: 24px;
+            }
+            .desktop-icon .icon-label {
+                max-width: 42px;
+                font-size: 8px;
+            }
+            .taskbar-window-btn {
+                min-width: 45px;
+                max-width: 65px;
+                font-size: 8px;
+                padding: 1px 3px;
+                height: 18px;
+            }
+            #start-button {
+                font-size: 10px;
+                padding: 2px 6px;
+                height: 24px;
+            }
+            #system-clock {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 桌面 ==================== -->
+    <div id="desktop">
+        <!-- 我的電腦 -->
+        <div class="desktop-icon" data-app="my-computer" data-title="我的電腦" ondblclick="openApp('my-computer')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">🖥️</div>
+            <div class="icon-label">我的電腦</div>
+        </div>
+        <!-- 我的文件 -->
+        <div class="desktop-icon" data-app="my-documents" data-title="我的文件" ondblclick="openApp('my-documents')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">📁</div>
+            <div class="icon-label">我的文件</div>
+        </div>
+        <!-- Google Drive -->
+        <div class="desktop-icon" data-app="google-drive" data-title="Puter 雲端" ondblclick="openApp('google-drive')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">☁️</div>
+            <div class="icon-label">Puter<br>雲端</div>
+        </div>
+        <!-- 雲端儲存設定 -->
+        <div class="desktop-icon" data-app="storage-settings" data-title="儲存空間設定" ondblclick="openApp('storage-settings')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">⚙️</div>
+            <div class="icon-label">儲存空間<br>設定</div>
+        </div>
+        <!-- 記事本 -->
+        <div class="desktop-icon" data-app="notepad" data-title="記事本" ondblclick="openApp('notepad')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">📝</div>
+            <div class="icon-label">記事本</div>
+        </div>
+        <!-- 資源回收桶 -->
+        <div class="desktop-icon" data-app="recycle-bin" data-title="資源回收桶" ondblclick="openApp('recycle-bin')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">🗑️</div>
+            <div class="icon-label">資源回收桶</div>
+        </div>
+        <!-- AI 助手 -->
+        <div class="desktop-icon" data-app="ai-chat" data-title="AI 助手" ondblclick="openApp('ai-chat')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">🤖</div>
+            <div class="icon-label">AI 助手</div>
+        </div>
+    </div>
+
+    <!-- ==================== 任務欄 ==================== -->
+    <div id="taskbar">
+        <!-- 開始按鈕 -->
+        <button id="start-button" onclick="toggleStartMenu(event)" title="開始">
+            <span class="start-icon">🪟</span> 開始
+        </button>
+
+        <div class="taskbar-separator"></div>
+
+        <!-- 快速啟動 -->
+        <div id="quick-launch">
+            <div class="quick-launch-icon" title="顯示桌面" onclick="toggleShowDesktop()">🖥️</div>
+            <div class="quick-launch-icon" title="檔案總管" onclick="openApp('my-computer')">📂</div>
+        </div>
+
+        <div class="taskbar-separator"></div>
+
+        <!-- 已開啟視窗按鈕 -->
+        <div id="taskbar-windows"></div>
+
+        <!-- 系統匣 -->
+        <div id="system-tray">
+            <span class="tray-icon" title="儲存狀態" id="storage-indicator">💾</span>
+            <span id="system-clock">下午 12:00</span>
+        </div>
+    </div>
+
+    <!-- ==================== 開始選單 ==================== -->
+    <div id="start-overlay" onclick="closeStartMenu()"></div>
+    <div id="start-menu">
+        <div class="start-header">
+            <div class="user-avatar">👤</div>
+            <div>
+                <div style="font-size:15px;">雲端桌面使用者</div>
+                <div style="font-size:11px;opacity:0.8;">歡迎使用遠端桌面系統</div>
+            </div>
+        </div>
+        <div class="start-body">
+            <div class="start-programs">
+                <div class="menu-item" onclick="openApp('my-computer');closeStartMenu();">
+                    <span class="menu-icon">🖥️</span> 我的電腦
+                </div>
+                <div class="menu-item" onclick="openApp('my-documents');closeStartMenu();">
+                    <span class="menu-icon">📁</span> 我的文件
+                </div>
+                <div class="menu-item" onclick="openApp('google-drive');closeStartMenu();">
+                    <span class="menu-icon">☁️</span> Puter 雲端
+                </div>
+                <div class="menu-separator"></div>
+                <div class="menu-item" onclick="openApp('notepad');closeStartMenu();">
+                    <span class="menu-icon">📝</span> 記事本
+                </div>
+                <div class="menu-item" onclick="openApp('storage-settings');closeStartMenu();">
+                    <span class="menu-icon">⚙️</span> 儲存空間設定
+                </div>
+                <div class="menu-separator"></div>
+                <div class="menu-item" onclick="openApp('recycle-bin');closeStartMenu();">
+                    <span class="menu-icon">🗑️</span> 資源回收桶
+                </div>
+                <div class="menu-separator"></div>
+                <div class="menu-item" onclick="openApp('ai-chat');closeStartMenu();">
+                    <span class="menu-icon">🤖</span> AI 助手 (Gemini)
+                </div>
+            </div>
+        </div>
+        <div class="start-footer" onclick="showToast('正在登出...');closeStartMenu();">
+            <span style="font-size:18px;">🔌</span> 登出系統
+        </div>
+    </div>
+
+    <!-- ==================== 視窗容器池 ==================== -->
+    <div id="windows-container"></div>
+
+    <script>
+        (function() {
+            // ==================== 全域狀態 ====================
+            const state = {
+                openWindows: {}, // { id: { element, title, icon, minimized, maximized, zIndex, appType } }
+                windowOrder: [], // 視窗層級順序（從底到頂）
+                zIndexCounter: 100,
+                activeWindowId: null,
+                isStartMenuOpen: false,
+                allWindowsMinimized: false,
+                storageMode: 'local', // 'local' | 'puter' | 'gdrive'
+                puterAvailable: false,
+                gdriveConnected: false,
+                puterConnected: false,
+                localFiles: [], // 本地檔案列表
+                recycledFiles: [], // 資源回收桶
+                isDragging: false,
+                chatHistories: {}, // 每個 ai-chat 視窗的對話紀錄
+                dragTarget: null,
+                dragOffset: { x: 0, y: 0 },
+                dragStartPos: { x: 0, y: 0 },
+            };
+
+            // ==================== DOM 引用 ====================
+            const desktop = document.getElementById('desktop');
+            const taskbarWindows = document.getElementById('taskbar-windows');
+            const windowsContainer = document.getElementById('windows-container');
+            const startMenu = document.getElementById('start-menu');
+            const startOverlay = document.getElementById('start-overlay');
+            const startButton = document.getElementById('start-button');
+            const systemClock = document.getElementById('system-clock');
+            const storageIndicator = document.getElementById('storage-indicator');
+
+            // ==================== 初始化 ====================
+            function init() {
+                updateClock();
+                setInterval(updateClock, 10000);
+                updateStorageIndicator();
+                initLocalFiles();
+                checkPuterAvailability();
+                initGlobalEvents();
+                // 預載本地檔案
+                loadLocalFilesFromStorage();
+                loadRecycledFiles();
+                console.log('🎯 雲端桌面系統 v2 已啟動 (Windows XP 風格)');
+                console.log('📋 可用儲存：本地磁碟 | Puter雲端 | Google Drive');
+            }
+
+            function initLocalFiles() {
+                // 初始化一些模擬的本地檔案
+                const defaultFiles = [
+                    { name: '系統設定檔.ini', size: '2 KB', type: 'file', icon: '📄' },
+                    { name: '使用說明.txt', size: '1 KB', type: 'file', icon: '📄' },
+                    { name: '文件資料夾', size: '--', type: 'folder', icon: '📁' },
+                    { name: '圖片庫', size: '--', type: 'folder', icon: '🖼️' },
+                    { name: '下載項目', size: '--', type: 'folder', icon: '📥' },
+                ];
+                if (!localStorage.getItem('cloudDesktop_localFiles')) {
+                    localStorage.setItem('cloudDesktop_localFiles', JSON.stringify(defaultFiles));
+                }
+                state.localFiles = JSON.parse(localStorage.getItem('cloudDesktop_localFiles') || '[]');
+            }
+
+            function loadLocalFilesFromStorage() {
+                const stored = localStorage.getItem('cloudDesktop_localFiles');
+                if (stored) {
+                    try {
+                        state.localFiles = JSON.parse(stored);
+                    } catch (e) {
+                        state.localFiles = [];
+                    }
+                }
+            }
+
+            function saveLocalFiles() {
+                localStorage.setItem('cloudDesktop_localFiles', JSON.stringify(state.localFiles));
+            }
+
+            function saveRecycledFiles() {
+                localStorage.setItem('cloudDesktop_recycledFiles', JSON.stringify(state.recycledFiles));
+            }
+
+            function loadRecycledFiles() {
+                try {
+                    state.recycledFiles = JSON.parse(localStorage.getItem('cloudDesktop_recycledFiles') || '[]');
+                } catch(e) { state.recycledFiles = []; }
+            }
+
+            function checkPuterAvailability() {
+                // 檢查 puter.js 是否已載入
+                if (typeof puter !== 'undefined' && puter.fs) {
+                    state.puterAvailable = true;
+                    state.puterConnected = true;
+                    console.log('✅ Puter.js 雲端儲存已就緒');
+                } else {
+                    // 設定一個延遲檢查
+                    let checkCount = 0;
+                    const checkInterval = setInterval(() => {
+                        if (typeof puter !== 'undefined' && puter.fs) {
+                            state.puterAvailable = true;
+                            state.puterConnected = true;
+                            console.log('✅ Puter.js 雲端儲存已就緒');
+                            updateStorageIndicator();
+                            clearInterval(checkInterval);
+                        }
+                        checkCount++;
+                        if (checkCount > 30) clearInterval(checkInterval); // 30秒超時
+                    }, 1000);
+                }
+            }
+
+            function initGlobalEvents() {
+                // 全域滑鼠移動（拖拽視窗）
+                document.addEventListener('mousemove', handleDragMove);
+                document.addEventListener('mouseup', handleDragEnd);
+                // 觸控支援
+                document.addEventListener('touchmove', handleTouchDragMove, { passive: false });
+                document.addEventListener('touchend', handleDragEnd);
+                // 點擊桌面空白處取消選取
+                desktop.addEventListener('click', function(e) {
+                    if (e.target === desktop || e.target.id === 'desktop') {
+                        clearDesktopSelection();
+                        if (state.activeWindowId) {
+                            setActiveWindow(null);
+                            updateTaskbarButtons();
+                        }
+                    }
+                });
+                // ESC 關閉開始選單
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        if (state.isStartMenuOpen) {
+                            closeStartMenu();
+                        }
+                    }
+                });
+                // 視窗大小改變時處理響應式
+                window.addEventListener('resize', handleResize);
+            }
+
+            function handleResize() {
+                // 確保所有最大化視窗適應新大小
+                Object.values(state.openWindows).forEach(win => {
+                    if (win.maximized && win.element) {
+                        win.element.style.top = '0';
+                        win.element.style.left = '0';
+                        win.element.style.width = '100%';
+                        win.element.style.height = `calc(100% - ${getTaskbarHeight()}px)`;
+                    }
+                });
+            }
+
+            function getTaskbarHeight() {
+                const style = getComputedStyle(document.documentElement);
+                return parseInt(style.getPropertyValue('--taskbar-height')) || 42;
+            }
+
+            // ==================== 時鐘 ====================
+            function updateClock() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const period = hours >= 12 ? '下午' : '上午';
+                const displayHours = hours % 12 || 12;
+                const displayMinutes = minutes.toString().padStart(2, '0');
+                systemClock.textContent = `${period} ${displayHours}:${displayMinutes}`;
+            }
+
+            // ==================== 儲存指示器 ====================
+            function updateStorageIndicator() {
+                if (state.storageMode === 'puter' && state.puterConnected) {
+                    storageIndicator.textContent = '☁️';
+                    storageIndicator.title = '目前儲存：Puter雲端 (已連線)';
+                } else if (state.storageMode === 'gdrive' && state.gdriveConnected) {
+                    storageIndicator.textContent = '🔗';
+                    storageIndicator.title = '目前儲存：Google Drive (已連線)';
+                } else {
+                    storageIndicator.textContent = '💾';
+                    storageIndicator.title = '目前儲存：本地磁碟';
+                }
+            }
+
+            // ==================== 開始選單 ====================
+            function toggleStartMenu(event) {
+                if (state.isStartMenuOpen) {
+                    closeStartMenu();
+                } else {
+                    openStartMenu();
+                }
+                event.stopPropagation();
+            }
+
+            function openStartMenu() {
+                state.isStartMenuOpen = true;
+                startMenu.classList.add('visible');
+                startOverlay.classList.add('visible');
+                startButton.classList.add('active');
+            }
+
+            function closeStartMenu() {
+                state.isStartMenuOpen = false;
+                startMenu.classList.remove('visible');
+                startOverlay.classList.remove('visible');
+                startButton.classList.remove('active');
+            }
+
+            // ==================== 桌面圖標 ====================
+            function selectDesktopIcon(iconElement) {
+                clearDesktopSelection();
+                iconElement.classList.add('selected');
+            }
+
+            function clearDesktopSelection() {
+                document.querySelectorAll('.desktop-icon.selected').forEach(el => {
+                    el.classList.remove('selected');
+                });
+            }
+
+            // ==================== 顯示桌面 ====================
+            function toggleShowDesktop() {
+                if (state.allWindowsMinimized) {
+                    // 恢復所有視窗
+                    Object.values(state.openWindows).forEach(win => {
+                        if (win.minimized) {
+                            restoreWindow(win.id);
+                        }
+                    });
+                    state.allWindowsMinimized = false;
+                } else {
+                    // 最小化所有視窗
+                    Object.values(state.openWindows).forEach(win => {
+                        if (!win.minimized) {
+                            minimizeWindowSilent(win.id);
+                        }
+                    });
+                    state.allWindowsMinimized = true;
+                }
+                updateTaskbarButtons();
+            }
+
+            function minimizeWindowSilent(windowId) {
+                const win = state.openWindows[windowId];
+                if (!win || win.minimized) return;
+                win.minimized = true;
+                win.element.classList.add('minimized');
+                if (state.activeWindowId === windowId) {
+                    state.activeWindowId = null;
+                }
+            }
+
+            function restoreWindow(windowId) {
+                const win = state.openWindows[windowId];
+                if (!win || !win.minimized) return;
+                win.minimized = false;
+                win.element.classList.remove('minimized');
+                setActiveWindow(windowId);
+                state.allWindowsMinimized = false;
+                updateTaskbarButtons();
+            }
+
+            // ==================== 視窗管理 ====================
+            function createWindowElement(appType, title, icon, width, height) {
+                const windowId = 'window-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+                const container = document.createElement('div');
+                container.className = 'window-container focused';
+                container.id = windowId;
+                container.style.width = width + 'px';
+                container.style.height = height + 'px';
+                container.style.zIndex = ++state.zIndexCounter;
+
+                // 初始位置（加入一些隨機偏移避免完全重疊）
+                const baseLeft = 60 + Object.keys(state.openWindows).length * 30;
+                const baseTop = 40 + Object.keys(state.openWindows).length * 25;
+                const maxLeft = window.innerWidth - width - 20;
+                const maxTop = window.innerHeight - getTaskbarHeight() - height - 20;
+                container.style.left = Math.min(baseLeft, maxLeft > 0 ? maxLeft : 10) + 'px';
+                container.style.top = Math.min(baseTop, maxTop > 0 ? maxTop : 10) + 'px';
+
+                container.innerHTML = `
+                    <div class="window-titlebar" data-window-id="${windowId}">
+                        <span class="window-icon">${icon}</span>
+                        <span class="window-title">${title}</span>
+                        <div class="titlebar-buttons">
+                            <button class="titlebar-btn minimize-btn" data-action="minimize" title="最小化">─</button>
+                            <button class="titlebar-btn maximize-btn" data-action="maximize" title="最大化">□</button>
+                            <button class="titlebar-btn close-btn" data-action="close" title="關閉">✕</button>
+                        </div>
+                    </div>
+                    <div class="window-content" id="content-${windowId}"></div>
+                `;
+
+                windowsContainer.appendChild(container);
+
+                // 綁定標題列事件
+                const titlebar = container.querySelector('.window-titlebar');
+                titlebar.addEventListener('mousedown', function(e) {
+                    if (e.target.closest('.titlebar-btn')) return; // 不干擾按鈕
+                    startDragWindow(container, windowId, e);
+                });
+                titlebar.addEventListener('touchstart', function(e) {
+                    if (e.target.closest('.titlebar-btn')) return;
+                    const touch = e.touches[0];
+                    startDragWindow(container, windowId, { clientX: touch.clientX, clientY: touch.clientY,
+                        preventDefault: () => {} });
+                    e.preventDefault();
+                }, { passive: false });
+
+                // 雙擊標題列最大化
+                titlebar.addEventListener('dblclick', function(e) {
+                    if (e.target.closest('.titlebar-btn')) return;
+                    toggleMaximize(windowId);
+                });
+
+                // 綁定按鈕事件
+                container.querySelector('.minimize-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    minimizeWindow(windowId);
+                });
+                container.querySelector('.maximize-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleMaximize(windowId);
+                });
+                container.querySelector('.close-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeWindow(windowId);
+                });
+
+                // 點擊視窗使其獲得焦點
+                container.addEventListener('mousedown', function(e) {
+                    setActiveWindow(windowId);
+                });
+
+                // 儲存視窗狀態
+                state.openWindows[windowId] = {
+                    id: windowId,
+                    element: container,
+                    title: title,
+                    icon: icon,
+                    minimized: false,
+                    maximized: false,
+                    zIndex: state.zIndexCounter,
+                    appType: appType,
+                    originalBounds: { left: container.style.left, top: container.style.top, width: container.style
+                            .width, height: container.style.height },
+                };
+                state.windowOrder.push(windowId);
+
+                // 設定為活動視窗
+                setActiveWindow(windowId);
+                updateTaskbarButtons();
+
+                return windowId;
+            }
+
+            function setActiveWindow(windowId) {
+                // 取消所有視窗的活動狀態
+                Object.values(state.openWindows).forEach(win => {
+                    if (win.element) {
+                        win.element.classList.remove('focused');
+                        win.element.classList.add('unfocused');
+                    }
+                });
+                state.activeWindowId = windowId;
+                if (windowId && state.openWindows[windowId]) {
+                    const win = state.openWindows[windowId];
+                    win.element.classList.remove('unfocused');
+                    win.element.classList.add('focused');
+                    // 提升 z-index
+                    win.zIndex = ++state.zIndexCounter;
+                    win.element.style.zIndex = win.zIndex;
+                    // 更新視窗順序
+                    state.windowOrder = state.windowOrder.filter(id => id !== windowId);
+                    state.windowOrder.push(windowId);
+                    // 如果之前被最小化，恢復
+                    if (win.minimized) {
+                        win.minimized = false;
+                        win.element.classList.remove('minimized');
+                        state.allWindowsMinimized = false;
+                    }
+                }
+                updateTaskbarButtons();
+            }
+
+            function minimizeWindow(windowId) {
+                const win = state.openWindows[windowId];
+                if (!win) return;
+                win.minimized = true;
+                win.element.classList.add('minimized');
+                if (state.activeWindowId === windowId) {
+                    state.activeWindowId = null;
+                    // 啟動下一個可見視窗
+                    const visibleWindows = Object.values(state.openWindows).filter(w => !w.minimized && w.id !==
+                        windowId);
+                    if (visibleWindows.length > 0) {
+                        setActiveWindow(visibleWindows[visibleWindows.length - 1].id);
+                    }
+                }
+                updateTaskbarButtons();
+            }
+
+            function toggleMaximize(windowId) {
+                const win = state.openWindows[windowId];
+                if (!win) return;
+                if (win.maximized) {
+                    // 還原
+                    win.maximized = false;
+                    win.element.classList.remove('maximized');
+                    win.element.style.left = win.originalBounds.left;
+                    win.element.style.top = win.originalBounds.top;
+                    win.element.style.width = win.originalBounds.width;
+                    win.element.style.height = win.originalBounds.height;
+                    win.element.querySelector('.maximize-btn').textContent = '□';
+                } else {
+                    // 最大化
+                    win.originalBounds = {
+                        left: win.element.style.left,
+                        top: win.element.style.top,
+                        width: win.element.style.width,
+                        height: win.element.style.height,
+                    };
+                    win.maximized = true;
+                    win.element.classList.add('maximized');
+                    win.element.style.top = '0';
+                    win.element.style.left = '0';
+                    win.element.style.width = '100%';
+                    win.element.style.height = `calc(100% - ${getTaskbarHeight()}px)`;
+                    win.element.querySelector('.maximize-btn').textContent = '❐';
+                }
+                setActiveWindow(windowId);
+            }
+
+            function closeWindow(windowId) {
+                const win = state.openWindows[windowId];
+                if (!win) return;
+                // 移除元素
+                if (win.element && win.element.parentNode) {
+                    win.element.remove();
+                }
+                // 清理狀態
+                delete state.openWindows[windowId];
+                state.windowOrder = state.windowOrder.filter(id => id !== windowId);
+                if (state.activeWindowId === windowId) {
+                    state.activeWindowId = null;
+                    // 啟動上一個視窗
+                    if (state.windowOrder.length > 0) {
+                        const lastId = state.windowOrder[state.windowOrder.length - 1];
+                        if (state.openWindows[lastId] && !state.openWindows[lastId].minimized) {
+                            setActiveWindow(lastId);
+                        }
+                    }
+                }
+                updateTaskbarButtons();
+            }
+
+            function focusWindow(windowId) {
+                const win = state.openWindows[windowId];
+                if (!win) return;
+                if (win.minimized) {
+                    win.minimized = false;
+                    win.element.classList.remove('minimized');
+                    state.allWindowsMinimized = false;
+                }
+                setActiveWindow(windowId);
+            }
+
+            // ==================== 視窗拖拽 ====================
+            function startDragWindow(container, windowId, e) {
+                const win = state.openWindows[windowId];
+                if (!win || win.maximized) return;
+                state.isDragging = true;
+                state.dragTarget = { container, windowId };
+                const rect = container.getBoundingClientRect();
+                state.dragOffset.x = e.clientX - rect.left;
+                state.dragOffset.y = e.clientY - rect.top;
+                state.dragStartPos = { x: e.clientX, y: e.clientY };
+                container.classList.add('dragging');
+                setActiveWindow(windowId);
+                if (e.preventDefault) e.preventDefault();
+            }
+
+            function handleDragMove(e) {
+                if (!state.isDragging || !state.dragTarget) return;
+                const { container, windowId } = state.dragTarget;
+                const win = state.openWindows[windowId];
+                if (!win || win.maximized) return;
+                const newLeft = e.clientX - state.dragOffset.x;
+                const newTop = e.clientY - state.dragOffset.y;
+                const maxLeft = window.innerWidth - container.offsetWidth;
+                const maxTop = window.innerHeight - getTaskbarHeight() - container.offsetHeight;
+                container.style.left = Math.max(0, Math.min(newLeft, maxLeft > 0 ? maxLeft : 0)) + 'px';
+                container.style.top = Math.max(0, Math.min(newTop, maxTop > 0 ? maxTop : 0)) + 'px';
+                // 更新原始邊界
+                win.originalBounds.left = container.style.left;
+                win.originalBounds.top = container.style.top;
+            }
+
+            function handleTouchDragMove(e) {
+                if (!state.isDragging || !state.dragTarget) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                handleDragMove({ clientX: touch.clientX, clientY: touch.clientY });
+            }
+
+            function handleDragEnd(e) {
+                if (state.isDragging && state.dragTarget) {
+                    state.dragTarget.container.classList.remove('dragging');
+                }
+                state.isDragging = false;
+                state.dragTarget = null;
+                state.dragOffset = { x: 0, y: 0 };
+            }
+
+            // ==================== 任務欄按鈕 ====================
+            function updateTaskbarButtons() {
+                taskbarWindows.innerHTML = '';
+                Object.values(state.openWindows).forEach(win => {
+                    const btn = document.createElement('button');
+                    btn.className = 'taskbar-window-btn';
+                    if (win.id === state.activeWindowId && !win.minimized) {
+                        btn.classList.add('active');
+                    }
+                    if (win.minimized) {
+                        btn.style.opacity = '0.6';
+                    }
+                    btn.innerHTML = `${win.icon} ${win.title}`;
+                    btn.title = win.title + (win.minimized ? ' (已最小化)' : '');
+                    btn.addEventListener('click', function() {
+                        if (win.minimized || win.id !== state.activeWindowId) {
+                            focusWindow(win.id);
+                        } else {
+                            minimizeWindow(win.id);
+                        }
+                    });
+                    taskbarWindows.appendChild(btn);
+                });
+            }
+
+            // ==================== 開啟應用程式 ====================
+            function openApp(appType) {
+                let title, icon, width, height;
+                const isMobile = window.innerWidth < 768;
+
+                switch (appType) {
+                    case 'my-computer':
+                        title = '我的電腦';
+                        icon = '🖥️';
+                        width = isMobile ? window.innerWidth - 10 : 650;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 480;
+                        break;
+                    case 'my-documents':
+                        title = '我的文件';
+                        icon = '📁';
+                        width = isMobile ? window.innerWidth - 10 : 600;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 440;
+                        break;
+                    case 'google-drive':
+                        title = 'Google Drive';
+                        icon = '☁️';
+                        width = isMobile ? window.innerWidth - 10 : 620;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 460;
+                        break;
+                    case 'storage-settings':
+                        title = '儲存空間設定';
+                        icon = '⚙️';
+                        width = isMobile ? window.innerWidth - 10 : 550;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 500;
+                        break;
+                    case 'notepad':
+                        title = '記事本';
+                        icon = '📝';
+                        width = isMobile ? window.innerWidth - 10 : 500;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 400;
+                        break;
+                    case 'recycle-bin':
+                        title = '資源回收桶';
+                        icon = '🗑️';
+                        width = isMobile ? window.innerWidth - 10 : 500;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 380;
+                        break;
+                    case 'ai-chat':
+                        title = 'AI 助手 (Gemini)';
+                        icon = '🤖';
+                        width = isMobile ? window.innerWidth - 10 : 560;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 480;
+                        break;
+                    default:
+                        title = '未知應用程式';
+                        icon = '📦';
+                        width = 400;
+                        height = 300;
+                }
+
+                // 檢查是否已開啟相同應用
+                const existingWin = Object.values(state.openWindows).find(w => w.appType === appType && !w.minimized);
+                if (existingWin) {
+                    focusWindow(existingWin.id);
+                    return;
+                }
+                // 檢查是否有最小化的相同應用
+                const minimizedWin = Object.values(state.openWindows).find(w => w.appType === appType && w.minimized);
+                if (minimizedWin) {
+                    restoreWindow(minimizedWin.id);
+                    focusWindow(minimizedWin.id);
+                    return;
+                }
+
+                const windowId = createWindowElement(appType, title, icon, width, height);
+                const contentEl = document.getElementById('content-' + windowId);
+                if (contentEl) {
+                    contentEl.innerHTML = getAppContent(appType, windowId);
+                    // 綁定內容中的事件
+                    bindAppContentEvents(appType, windowId);
+                }
+            }
+
+            function getAppContent(appType, windowId) {
+                switch (appType) {
+                    case 'my-computer':
+                        return getMyComputerContent(windowId);
+                    case 'my-documents':
+                        return getMyDocumentsContent(windowId);
+                    case 'google-drive':
+                        return getGoogleDriveContent(windowId);
+                    case 'storage-settings':
+                        return getStorageSettingsContent(windowId);
+                    case 'notepad':
+                        return getNotepadContent(windowId);
+                    case 'recycle-bin':
+                        return getRecycleBinContent(windowId);
+                    case 'ai-chat':
+                        return getAiChatContent(windowId);
+                    default:
+                        return '<p>此應用程式正在開發中...</p>';
+                }
+            }
+
+            function getMyComputerContent(windowId) {
+                const files = state.localFiles;
+                let rows = files.map((f, i) => `
+                    <tr data-index="${i}" class="file-row">
+                        <td class="file-icon">${f.icon}</td>
+                        <td class="file-name">${f.name}</td>
+                        <td class="file-size">${f.size}</td>
+                        <td>${f.type === 'folder' ? '📂 資料夾' : '📄 檔案'}</td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="storage-panel">
+                        <h3 style="margin:0 0 8px;color:#1a1a1a;">🖥️ 我的電腦 - 本地磁碟檔案</h3>
+                        <p style="color:#666;font-size:12px;margin:0 0 8px;">
+                            目前儲存模式：<strong>${getStorageModeLabel()}</strong> | 
+                            檔案總數：<strong>${files.length}</strong>
+                        </p>
+                        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="window._addFile('${windowId}')">➕ 新增檔案</button>
+                            <button class="btn" onclick="window._uploadFile('${windowId}')">📤 上傳檔案</button>
+                            <button class="btn" onclick="window._deleteSelectedFile('${windowId}')">🗑️ 刪除選取</button>
+                            <button class="btn" onclick="window._refreshFiles('${windowId}')">🔄 重新整理</button>
+                        </div>
+                        <div style="max-height:280px;overflow-y:auto;border:1px solid #ddd;border-radius:6px;">
+                            <table class="file-list">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px;"></th>
+                                        <th>檔案名稱</th>
+                                        <th style="width:60px;">大小</th>
+                                        <th style="width:80px;">類型</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="file-table-${windowId}">
+                                    ${rows || '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">📭 此資料夾為空</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p style="font-size:10px;color:#aaa;margin-top:6px;">💡 提示：點擊檔案列可選取，雙擊資料夾可開啟</p>
+                    </div>
+                `;
+            }
+
+            function getMyDocumentsContent(windowId) {
+                return `
+                    <div class="storage-panel">
+                        <h3 style="margin:0 0 8px;">📁 我的文件</h3>
+                        <p style="color:#666;">此為您的個人文件儲存空間。所有文件預設儲存在<strong>本地磁碟</strong>中。</p>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+                            <div style="flex:1;min-width:120px;padding:16px;background:#f9f9f9;border-radius:8px;text-align:center;cursor:pointer;" 
+                                 onclick="openApp('my-computer')">
+                                <div style="font-size:36px;">📂</div>
+                                <div style="font-size:13px;font-weight:bold;">瀏覽檔案</div>
+                            </div>
+                            <div style="flex:1;min-width:120px;padding:16px;background:#f9f9f9;border-radius:8px;text-align:center;cursor:pointer;" 
+                                 onclick="openApp('notepad')">
+                                <div style="font-size:36px;">📝</div>
+                                <div style="font-size:13px;font-weight:bold;">新增筆記</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function getGoogleDriveContent(windowId) {
+                const connected = state.gdriveConnected;
+                const user = state.puterUser;
+                return `
+                    <div class="storage-panel">
+                        <h3 style="margin:0 0 8px;">☁️ Puter 雲端儲存</h3>
+                        ${connected ? `
+                            <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:10px;">
+                                ✅ 已登入 Puter<br>
+                                <span style="font-size:11px;color:#555;">使用者：${user ? (user.username || user.email || 'Puter 使用者') : 'Puter 使用者'}</span>
+                            </div>
+                            <p style="color:#666;font-size:12px;">📁 Puter 雲端路徑：<code>/cloudDesktop/</code></p>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn btn-primary" onclick="window._loadPuterFiles('${windowId}')">🔄 重新整理雲端檔案</button>
+                                <button class="btn" onclick="window._disconnectGDrive('${windowId}')">🔌 登出</button>
+                            </div>
+                        ` : `
+                            <div style="background:#fff3cd;padding:12px;border-radius:8px;margin-bottom:10px;">
+                                ⚠️ 尚未登入 Puter 雲端
+                            </div>
+                            <p style="color:#666;font-size:12px;">登入 Puter 帳號後，可享有真實雲端儲存、AI 功能（Gemini）。</p>
+                            <button class="btn btn-primary" onclick="window._connectGDrive('${windowId}')">
+                                🔗 登入 Puter 帳號
+                            </button>
+                            <p style="font-size:10px;color:#999;margin-top:8px;">
+                                ※ Puter 是免費的雲端平台，支援真實檔案儲存與 AI<br>
+                                ※ 登入後記事本將自動雲端備份，AI 功能即可使用
+                            </p>
+                        `}
+                    </div>
+                `;
+            }
+
+            function getStorageSettingsContent(windowId) {
+                const localActive = state.storageMode === 'local';
+                const puterActive = state.storageMode === 'puter';
+                const gdriveActive = state.storageMode === 'gdrive';
+                return `
+                    <div class="storage-panel">
+                        <h3 style="margin:0 0 8px;">⚙️ 儲存空間設定</h3>
+                        <p style="color:#666;font-size:12px;">選擇您的預設儲存空間：</p>
+                        
+                        <div class="storage-option ${localActive ? 'connected' : ''}" 
+                             onclick="window._setStorageMode('local', '${windowId}')">
+                            <div class="storage-icon">💾</div>
+                            <div class="storage-info">
+                                <h4>本地磁碟</h4>
+                                <span>使用瀏覽器 localStorage 儲存檔案資訊（支援 File System Access API）</span>
+                            </div>
+                        </div>
+                        
+                        <div class="storage-option ${puterActive ? 'connected' : ''}" 
+                             onclick="window._setStorageMode('puter', '${windowId}')">
+                            <div class="storage-icon">☁️</div>
+                            <div class="storage-info">
+                                <h4>Puter 雲端儲存</h4>
+                                <span>真實雲端儲存 + Gemini AI（需登入）${state.gdriveConnected ? ' ✅ 已登入' : state.puterAvailable ? ' (Puter 已就緒，請登入)' : ' (載入中...)'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="storage-option ${gdriveActive ? 'connected' : ''}" 
+                             onclick="window._setStorageMode('gdrive', '${windowId}')">
+                            <div class="storage-icon">🔗</div>
+                            <div class="storage-info">
+                                <h4>Google Drive</h4>
+                                <span>連線至 Google 雲端硬碟進行檔案存取${state.gdriveConnected ? ' (已連線)' : ' (需認證)'}</span>
+                            </div>
+                        </div>
+                        
+                        <hr style="border-color:#e0e0e0;margin:8px 0;">
+                        <p style="font-size:11px;color:#888;">
+                            目前使用：<strong>${getStorageModeLabel()}</strong><br>
+                            系統版本：雲端桌面系統 v1.0 (Windows XP 風格)
+                        </p>
+                    </div>
+                `;
+            }
+
+            function getNotepadContent(windowId) {
+                return `
+                    <div style="display:flex;flex-direction:column;height:100%;gap:8px;">
+                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                            <span style="font-weight:bold;">📝 記事本</span>
+                            <span style="font-size:10px;color:#888;" id="note-status-${windowId}">未儲存</span>
+                            <div style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;">
+                                <button class="btn" style="font-size:11px;padding:4px 10px;" 
+                                        onclick="window._saveNote('${windowId}')">💾 儲存</button>
+                                <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;" 
+                                        onclick="window._aiNotepad('${windowId}', 'polish')">✨ AI 潤稿</button>
+                                <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;" 
+                                        onclick="window._aiNotepad('${windowId}', 'summarize')">📋 AI 摘要</button>
+                                <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;" 
+                                        onclick="window._aiNotepad('${windowId}', 'translate')">🌐 AI 翻譯</button>
+                            </div>
+                        </div>
+                        <textarea id="notepad-text-${windowId}" 
+                                  style="flex:1;width:100%;resize:none;border:1px solid #ccc;border-radius:4px;padding:10px;font-family:'Consolas','微軟正黑體',monospace;font-size:13px;min-height:160px;"
+                                  placeholder="在此輸入文字...">${localStorage.getItem('cloudDesktop_note') || ''}</textarea>
+                        <div id="ai-panel-${windowId}" style="display:none;border:1px solid #aad;border-radius:6px;background:#f0f4ff;padding:10px;max-height:180px;overflow-y:auto;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                <span style="font-size:12px;font-weight:bold;color:#3168d5;">🤖 Gemini AI 回覆</span>
+                                <button class="btn" style="font-size:10px;padding:2px 8px;" onclick="document.getElementById('ai-panel-${windowId}').style.display='none'">✕</button>
+                            </div>
+                            <div id="ai-result-${windowId}" style="font-size:12px;line-height:1.7;white-space:pre-wrap;color:#222;"></div>
+                            <div style="display:flex;gap:5px;margin-top:8px;">
+                                <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="window._applyAiResult('${windowId}')">✅ 套用至記事本</button>
+                            </div>
+                        </div>
+                        <div id="ai-loading-${windowId}" style="display:none;text-align:center;padding:8px;color:#3168d5;font-size:12px;">
+                            ⏳ Gemini 思考中...
+                        </div>
+                    </div>
+                `;
+            }
+
+            function getRecycleBinContent(windowId) {
+                const files = state.recycledFiles;
+                const rows = files.map((f, i) => `
+                    <tr data-index="${i}" class="file-row recycle-row">
+                        <td class="file-icon">${f.icon}</td>
+                        <td class="file-name">${f.name}</td>
+                        <td class="file-size">${f.size}</td>
+                        <td style="font-size:10px;color:#888;">${f.deletedAt || ''}</td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="storage-panel">
+                        <h3 style="margin:0 0 8px;">🗑️ 資源回收桶</h3>
+                        <p style="color:#666;font-size:12px;margin:0 0 8px;">共 <strong>${files.length}</strong> 個項目</p>
+                        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="window._restoreSelectedFile('${windowId}')">♻️ 還原選取</button>
+                            <button class="btn" onclick="window._emptyRecycleBin('${windowId}')" style="color:#c00;">🗑️ 清空回收桶</button>
+                        </div>
+                        <div style="max-height:280px;overflow-y:auto;border:1px solid #ddd;border-radius:6px;">
+                            ${files.length === 0 ? '<div style="text-align:center;padding:30px;color:#999;"><div style="font-size:50px;">🗑️</div><p style="margin-top:10px;">資源回收桶是空的</p></div>'
+                            : `<table class="file-list">
+                                <thead><tr>
+                                    <th style="width:40px;"></th>
+                                    <th>檔案名稱</th>
+                                    <th style="width:60px;">大小</th>
+                                    <th style="width:130px;">刪除時間</th>
+                                </tr></thead>
+                                <tbody id="recycle-table-${windowId}">${rows}</tbody>
+                            </table>`}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function getAiChatContent(windowId) {
+                return `
+                    <div style="display:flex;flex-direction:column;height:100%;gap:0;">
+                        <div style="background:#1e3a6e;color:#fff;padding:10px 14px;font-size:13px;font-weight:bold;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;">
+                            🤖 Gemini AI 助手
+                            <span style="font-size:10px;font-weight:normal;opacity:0.75;margin-left:auto;">由 Puter.js 驅動</span>
+                        </div>
+                        <div id="ai-chat-log-${windowId}" style="flex:1;overflow-y:auto;padding:10px;background:#f8f9ff;display:flex;flex-direction:column;gap:8px;min-height:200px;">
+                            <div style="text-align:center;color:#888;font-size:12px;padding:20px 0;">
+                                👋 你好！我是 Gemini，有什麼我可以幫你的嗎？
+                            </div>
+                        </div>
+                        <div id="ai-chat-typing-${windowId}" style="display:none;padding:6px 14px;font-size:11px;color:#3168d5;background:#eef;">⏳ Gemini 思考中...</div>
+                        <div style="display:flex;gap:6px;padding:8px;border-top:1px solid #ddd;background:#fff;">
+                            <textarea id="ai-chat-input-${windowId}" 
+                                      style="flex:1;resize:none;border:1px solid #ccc;border-radius:4px;padding:6px 10px;font-family:inherit;font-size:12px;height:56px;"
+                                      placeholder="輸入訊息...（Enter 送出，Shift+Enter 換行）"
+                                      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window._sendAiChat('${windowId}');}"></textarea>
+                            <button class="btn btn-primary" style="align-self:flex-end;padding:8px 14px;" 
+                                    onclick="window._sendAiChat('${windowId}')">送出</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function getStorageModeLabel() {
+                switch (state.storageMode) {
+                    case 'local':
+                        return '本地磁碟';
+                    case 'puter':
+                        return 'Puter 雲端';
+                    case 'gdrive':
+                        return 'Google Drive';
+                    default:
+                        return '本地磁碟';
+                }
+            }
+
+            // ==================== 應用內容事件綁定 ====================
+            function bindAppContentEvents(appType, windowId) {
+                // 為「我的電腦」綁定檔案列點擊事件
+                if (appType === 'my-computer') {
+                    const tableBody = document.getElementById('file-table-' + windowId);
+                    if (tableBody) {
+                        tableBody.addEventListener('click', function(e) {
+                            const row = e.target.closest('.file-row');
+                            if (row) {
+                                tableBody.querySelectorAll('.file-row').forEach(r => { r.style.background = ''; delete r.dataset.selected; });
+                                row.style.background = '#d0e0ff';
+                                row.dataset.selected = 'true';
+                            }
+                        });
+                        tableBody.addEventListener('dblclick', function(e) {
+                            const row = e.target.closest('.file-row');
+                            if (row && row.dataset.index !== undefined) {
+                                const file = state.localFiles[parseInt(row.dataset.index)];
+                                if (file && file.type === 'folder') {
+                                    showToast(`📂 開啟資料夾：${file.name}`);
+                                }
+                            }
+                        });
+                    }
+                }
+                if (appType === 'recycle-bin') {
+                    const recycleBody = document.getElementById('recycle-table-' + windowId);
+                    if (recycleBody) {
+                        recycleBody.addEventListener('click', function(e) {
+                            const row = e.target.closest('.recycle-row');
+                            if (row) {
+                                recycleBody.querySelectorAll('.recycle-row').forEach(r => { r.style.background = ''; delete r.dataset.selected; });
+                                row.style.background = '#d0e0ff';
+                                row.dataset.selected = 'true';
+                            }
+                        });
+                    }
+                }
+            }
+
+            // ==================== 全域輔助函數（暴露到 window） ====================
+            window._setStorageMode = function(mode, windowId) {
+                state.storageMode = mode;
+                if (mode === 'gdrive' && !state.gdriveConnected) {
+                    showToast('⚠️ 請先在 Google Drive 視窗中完成連線');
+                }
+                if (mode === 'puter' && !state.puterAvailable) {
+                    showToast('⚠️ Puter.js 尚未載入，請稍候或檢查網路連線');
+                }
+                if (mode === 'puter' && state.puterAvailable) {
+                    state.puterConnected = true;
+                }
+                updateStorageIndicator();
+                // 更新設定視窗內容
+                const contentEl = document.getElementById('content-' + windowId);
+                if (contentEl && state.openWindows[windowId]?.appType === 'storage-settings') {
+                    contentEl.innerHTML = getStorageSettingsContent(windowId);
+                }
+                showToast(`✅ 儲存模式已切換為：${getStorageModeLabel()}`);
+            };
+
+            window._connectGDrive = async function(windowId) {
+                showToast('🔗 正在啟動 Puter 帳號認證...');
+                try {
+                    // 真實 puter.auth 登入
+                    await puter.auth.signIn();
+                    const user = await puter.auth.getUser();
+                    state.gdriveConnected = true;
+                    state.puterUser = user;
+                    state.storageMode = 'puter';
+                    updateStorageIndicator();
+                    const contentEl = document.getElementById('content-' + windowId);
+                    if (contentEl) {
+                        contentEl.innerHTML = getGoogleDriveContent(windowId);
+                    }
+                    // 載入 Puter 雲端檔案
+                    await window._loadPuterFiles(windowId);
+                    refreshAllOpenWindows();
+                    showToast('✅ 已成功登入 Puter！歡迎 ' + (user.username || '使用者'));
+                } catch(e) {
+                    showToast('❌ 認證失敗：' + (e.message || e));
+                }
+            };
+
+            window._disconnectGDrive = async function(windowId) {
+                try {
+                    await puter.auth.signOut();
+                } catch(e) {}
+                state.gdriveConnected = false;
+                state.puterUser = null;
+                if (state.storageMode === 'gdrive' || state.storageMode === 'puter') {
+                    state.storageMode = 'local';
+                }
+                updateStorageIndicator();
+                const contentEl = document.getElementById('content-' + windowId);
+                if (contentEl) {
+                    contentEl.innerHTML = getGoogleDriveContent(windowId);
+                }
+                showToast('🔌 已登出 Puter');
+            };
+
+            window._addFile = function(windowId) {
+                const fileName = prompt('請輸入新檔案名稱：', '新檔案.txt');
+                if (fileName) {
+                    state.localFiles.push({
+                        name: fileName,
+                        size: '0 KB',
+                        type: 'file',
+                        icon: '📄',
+                    });
+                    saveLocalFiles();
+                    refreshFileTable(windowId);
+                    showToast(`✅ 已新增檔案：${fileName}`);
+                }
+            };
+
+            window._uploadFile = async function(windowId) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.onchange = async function(e) {
+                    const files = Array.from(e.target.files);
+                    if (!files.length) return;
+                    for (const file of files) {
+                        state.localFiles.push({
+                            name: file.name,
+                            size: formatFileSize(file.size),
+                            type: 'file',
+                            icon: getFileIcon(file.name),
+                            _blob: file,
+                        });
+                    }
+                    saveLocalFiles();
+                    refreshFileTable(windowId);
+                    showToast(`📤 已匯入 ${files.length} 個檔案`);
+                    // 若已登入 Puter，同時上傳至雲端
+                    if (state.gdriveConnected && typeof puter !== 'undefined' && puter.fs) {
+                        for (const file of files) {
+                            try {
+                                await puter.fs.write('/cloudDesktop/' + file.name, file, { createMissingParents: true });
+                            } catch(err) {}
+                        }
+                        showToast('☁️ 已同步至 Puter 雲端');
+                    }
+                };
+                input.click();
+            };
+
+            window._deleteSelectedFile = function(windowId) {
+                const tableBody = document.getElementById('file-table-' + windowId);
+                if (!tableBody) return;
+                const selectedRow = tableBody.querySelector('.file-row[data-selected="true"]');
+                if (selectedRow && selectedRow.dataset.index !== undefined) {
+                    const index = parseInt(selectedRow.dataset.index);
+                    const fileObj = state.localFiles[index];
+                    const fileName = fileObj?.name || '未知檔案';
+                    if (confirm(`確定要將「${fileName}」移至資源回收桶嗎？`)) {
+                        // 加上刪除時間戳
+                        state.recycledFiles.push({ ...fileObj, deletedAt: new Date().toLocaleString('zh-TW') });
+                        saveRecycledFiles();
+                        state.localFiles.splice(index, 1);
+                        saveLocalFiles();
+                        refreshFileTable(windowId);
+                        showToast(`🗑️ 已移至回收桶：${fileName}`);
+                        // 更新回收桶視窗（若已開啟）
+                        Object.values(state.openWindows).forEach(w => {
+                            if (w.appType === 'recycle-bin') {
+                                const ce = document.getElementById('content-' + w.id);
+                                if (ce) ce.innerHTML = getRecycleBinContent(w.id);
+                            }
+                        });
+                    }
+                } else {
+                    showToast('⚠️ 請先選取一個檔案');
+                }
+            };
+
+            window._refreshFiles = function(windowId) {
+                loadLocalFilesFromStorage();
+                refreshFileTable(windowId);
+                showToast('🔄 檔案列表已重新整理');
+            };
+
+            window._restoreSelectedFile = function(windowId) {
+                const tableBody = document.getElementById('recycle-table-' + windowId);
+                if (!tableBody) return;
+                const selected = tableBody.querySelector('.recycle-row[data-selected="true"]');
+                if (selected && selected.dataset.index !== undefined) {
+                    const idx = parseInt(selected.dataset.index);
+                    const fileObj = state.recycledFiles[idx];
+                    if (fileObj) {
+                        const { deletedAt, ...restoredFile } = fileObj;
+                        state.localFiles.push(restoredFile);
+                        saveLocalFiles();
+                        state.recycledFiles.splice(idx, 1);
+                        saveRecycledFiles();
+                        // 重繪回收桶
+                        const ce = document.getElementById('content-' + windowId);
+                        if (ce) ce.innerHTML = getRecycleBinContent(windowId);
+                        bindAppContentEvents('recycle-bin', windowId);
+                        showToast('♻️ 已還原：' + fileObj.name);
+                    }
+                } else {
+                    showToast('⚠️ 請先選取一個檔案');
+                }
+            };
+
+            window._emptyRecycleBin = function(windowId) {
+                if (state.recycledFiles.length === 0) { showToast('回收桶已經是空的'); return; }
+                if (!confirm('確定要永久刪除所有回收桶內的項目嗎？此操作無法還原！')) return;
+                state.recycledFiles = [];
+                saveRecycledFiles();
+                const ce = document.getElementById('content-' + windowId);
+                if (ce) ce.innerHTML = getRecycleBinContent(windowId);
+                showToast('🗑️ 回收桶已清空');
+            };
+
+            window._aiNotepad = async function(windowId, mode) {
+                if (typeof puter === 'undefined' || !puter.ai) {
+                    showToast('⚠️ Puter.js 尚未載入，請稍候再試');
+                    return;
+                }
+                const textarea = document.getElementById('notepad-text-' + windowId);
+                const aiPanel = document.getElementById('ai-panel-' + windowId);
+                const aiResult = document.getElementById('ai-result-' + windowId);
+                const aiLoading = document.getElementById('ai-loading-' + windowId);
+                if (!textarea || !textarea.value.trim()) {
+                    showToast('⚠️ 請先在記事本輸入文字');
+                    return;
+                }
+                const text = textarea.value.trim();
+                let prompt = '';
+                switch(mode) {
+                    case 'polish':
+                        prompt = `請將以下文字潤稿，使其更通順流暢、專業美觀。僅輸出潤稿後的文字，不需要解釋：
+
+${text}`;
+                        break;
+                    case 'summarize':
+                        prompt = `請為以下文字製作簡明摘要（使用繁體中文，條列重點）：
+
+${text}`;
+                        break;
+                    case 'translate':
+                        prompt = `請將以下文字翻譯為英文（若已是英文則翻為繁體中文）。僅輸出翻譯結果：
+
+${text}`;
+                        break;
+                }
+                // 顯示載入中
+                if (aiPanel) aiPanel.style.display = 'none';
+                if (aiLoading) aiLoading.style.display = 'block';
+                try {
+                    // 使用 puter.ai.chat (Gemini)
+                    const response = await puter.ai.chat(prompt, { model: 'gemini-2.0-flash' });
+                    const resultText = typeof response === 'string' ? response
+                        : response?.message?.content?.[0]?.text
+                        || response?.content?.[0]?.text
+                        || response?.text
+                        || JSON.stringify(response);
+                    if (aiLoading) aiLoading.style.display = 'none';
+                    if (aiResult) aiResult.textContent = resultText;
+                    if (aiPanel) { aiPanel.style.display = 'block'; aiPanel._lastResult = resultText; }
+                    showToast('✨ Gemini AI 回覆完成！');
+                } catch(e) {
+                    if (aiLoading) aiLoading.style.display = 'none';
+                    showToast('❌ AI 呼叫失敗：' + (e.message || e));
+                }
+            };
+
+            window._applyAiResult = function(windowId) {
+                const aiPanel = document.getElementById('ai-panel-' + windowId);
+                const aiResult = document.getElementById('ai-result-' + windowId);
+                const textarea = document.getElementById('notepad-text-' + windowId);
+                if (textarea && aiResult && aiResult.textContent) {
+                    textarea.value = aiResult.textContent;
+                    localStorage.setItem('cloudDesktop_note', textarea.value);
+                    if (aiPanel) aiPanel.style.display = 'none';
+                    showToast('✅ AI 結果已套用至記事本');
+                }
+            };
+
+            window._sendAiChat = async function(windowId) {
+                if (typeof puter === 'undefined' || !puter.ai) {
+                    showToast('⚠️ Puter.js 尚未載入，請稍候。若要使用 AI，請先登入 Puter 帳號。');
+                    return;
+                }
+                const inputEl = document.getElementById('ai-chat-input-' + windowId);
+                const logEl   = document.getElementById('ai-chat-log-' + windowId);
+                const typingEl = document.getElementById('ai-chat-typing-' + windowId);
+                if (!inputEl || !logEl) return;
+                const userMsg = inputEl.value.trim();
+                if (!userMsg) return;
+                inputEl.value = '';
+
+                // 顯示使用者訊息
+                const userBubble = document.createElement('div');
+                userBubble.style.cssText = 'align-self:flex-end;background:#3168d5;color:#fff;padding:7px 12px;border-radius:12px 12px 2px 12px;max-width:80%;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;';
+                userBubble.textContent = userMsg;
+                logEl.appendChild(userBubble);
+                logEl.scrollTop = logEl.scrollHeight;
+
+                // 維護對話歷史
+                if (!state.chatHistories[windowId]) state.chatHistories[windowId] = [];
+                state.chatHistories[windowId].push({ role: 'user', content: userMsg });
+
+                if (typingEl) typingEl.style.display = 'block';
+                try {
+                    // 用 messages 格式送多輪對話
+                    const resp = await puter.ai.chat(state.chatHistories[windowId], { model: 'gemini-2.0-flash' });
+                    const aiText = typeof resp === 'string' ? resp
+                        : resp?.message?.content?.[0]?.text
+                        || resp?.content?.[0]?.text
+                        || resp?.text
+                        || JSON.stringify(resp);
+                    state.chatHistories[windowId].push({ role: 'assistant', content: aiText });
+
+                    if (typingEl) typingEl.style.display = 'none';
+                    const aiBubble = document.createElement('div');
+                    aiBubble.style.cssText = 'align-self:flex-start;background:#fff;border:1px solid #dde;padding:7px 12px;border-radius:2px 12px 12px 12px;max-width:85%;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;';
+                    aiBubble.textContent = aiText;
+                    logEl.appendChild(aiBubble);
+                    logEl.scrollTop = logEl.scrollHeight;
+                } catch(e) {
+                    if (typingEl) typingEl.style.display = 'none';
+                    const errBubble = document.createElement('div');
+                    errBubble.style.cssText = 'align-self:center;background:#fee;color:#c00;padding:6px 10px;border-radius:8px;font-size:11px;';
+                    errBubble.textContent = '❌ 錯誤：' + (e.message || e) + '（請先登入 Puter）';
+                    logEl.appendChild(errBubble);
+                    logEl.scrollTop = logEl.scrollHeight;
+                }
+            };
+
+            window._saveNote = async function(windowId) {
+                const textarea = document.getElementById('notepad-text-' + windowId);
+                if (!textarea) return;
+                const text = textarea.value;
+                localStorage.setItem('cloudDesktop_note', text);
+                showToast('💾 已儲存至本地...');
+                // 若已登入 Puter，同時雲端備份
+                if (state.gdriveConnected && typeof puter !== 'undefined') {
+                    try {
+                        await puter.fs.write('/cloudDesktop/notepad.txt', text, { createMissingParents: true });
+                        showToast('☁️ 記事本已同步至 Puter 雲端！');
+                    } catch(e) {
+                        showToast('⚠️ 雲端同步失敗：' + (e.message || e));
+                    }
+                }
+            };
+
+            function refreshFileTable(windowId) {
+                const tableBody = document.getElementById('file-table-' + windowId);
+                if (!tableBody) return;
+                const files = state.localFiles;
+                tableBody.innerHTML = files.map((f, i) => `
+                    <tr data-index="${i}" class="file-row">
+                        <td class="file-icon">${f.icon}</td>
+                        <td class="file-name">${f.name}</td>
+                        <td class="file-size">${f.size}</td>
+                        <td>${f.type === 'folder' ? '📂 資料夾' : '📄 檔案'}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">📭 此資料夾為空</td></tr>';
+            }
+
+            function refreshAllOpenWindows() {
+                Object.entries(state.openWindows).forEach(([windowId, win]) => {
+                    const contentEl = document.getElementById('content-' + windowId);
+                    if (contentEl) {
+                        contentEl.innerHTML = getAppContent(win.appType, windowId);
+                        bindAppContentEvents(win.appType, windowId);
+                    }
+                });
+            }
+
+            window._loadPuterFiles = async function(windowId) {
+                if (typeof puter === 'undefined' || !puter.fs) return;
+                try {
+                    // 確保目錄存在
+                    await puter.fs.mkdir('/cloudDesktop', { createMissingParents: true }).catch(() => {});
+                    const items = await puter.fs.readdir('/cloudDesktop');
+                    // 把 Puter 的檔案合併進 localFiles（避免重複）
+                    items.forEach(item => {
+                        const exists = state.localFiles.find(f => f.name === item.name && f._puter);
+                        if (!exists) {
+                            state.localFiles.push({
+                                name: item.name,
+                                size: item.size ? formatFileSize(item.size) : '--',
+                                type: item.is_dir ? 'folder' : 'file',
+                                icon: item.is_dir ? '📁' : '☁️',
+                                _puter: true,
+                            });
+                        }
+                    });
+                    saveLocalFiles();
+                    // 嘗試讀取雲端記事本
+                    try {
+                        const noteBlob = await puter.fs.read('/cloudDesktop/notepad.txt');
+                        const noteText = await noteBlob.text();
+                        if (noteText) localStorage.setItem('cloudDesktop_note', noteText);
+                    } catch(e) {}
+                    showToast('☁️ Puter 雲端檔案已載入（' + items.length + ' 個項目）');
+                } catch(e) {
+                    showToast('⚠️ 載入 Puter 檔案失敗：' + (e.message || e));
+                }
+            };
+
+            function getFileIcon(name) {
+                if (!name) return '📄';
+                const ext = name.split('.').pop().toLowerCase();
+                const map = { txt:'📄', md:'📝', pdf:'📕', doc:'📘', docx:'📘', xls:'📗', xlsx:'📗',
+                    ppt:'📙', pptx:'📙', jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🖼️',
+                    mp3:'🎵', wav:'🎵', mp4:'🎬', mov:'🎬', zip:'🗜️', rar:'🗜️',
+                    html:'🌐', js:'⚙️', py:'🐍', json:'📋', csv:'📊' };
+                return map[ext] || '📄';
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(2) + ' MB';
+            }
+
+            // ==================== Toast 通知 ====================
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 3000);
+            }
+
+            // ==================== 暴露到全域 ====================
+            window.openApp = openApp;
+            window.toggleStartMenu = toggleStartMenu;
+            window.closeStartMenu = closeStartMenu;
+            window.selectDesktopIcon = selectDesktopIcon;
+            window.toggleShowDesktop = toggleShowDesktop;
+            window.showToast = showToast;
+            window._setStorageMode = window._setStorageMode;
+            window._connectGDrive = window._connectGDrive;
+            window._disconnectGDrive = window._disconnectGDrive;
+            window._addFile = window._addFile;
+            window._uploadFile = window._uploadFile;
+            window._deleteSelectedFile = window._deleteSelectedFile;
+            window._refreshFiles = window._refreshFiles;
+            window._saveNote = window._saveNote;
+            window._restoreSelectedFile = window._restoreSelectedFile;
+            window._emptyRecycleBin = window._emptyRecycleBin;
+            window._aiNotepad = window._aiNotepad;
+            window._sendAiChat = window._sendAiChat;
+            window._applyAiResult = window._applyAiResult;
+
+            // ==================== 啟動系統 ====================
+            init();
+            console.log('🪟 雲端桌面系統 v2 初始化完成（含真實 Puter AI & 雲端儲存）');
+            console.log('   🖥️ 我的電腦 - 瀏覽本地檔案');
+            console.log('   📁 我的文件 - 個人文件管理');
+            console.log('   ☁️ Google Drive - 雲端硬碟連線');
+            console.log('   ⚙️ 儲存空間設定 - 切換儲存模式');
+            console.log('   📝 記事本 - 文字編輯器');
+            console.log('   🗑️ 資源回收桶 - 檔案回收');
+            console.log('   💡 提示：雙擊桌面圖標開啟應用程式');
+            console.log('   📱 支援響應式設計，可在手機/平板使用');
+
+        })();
+    </script>
+</body>
+</html>
