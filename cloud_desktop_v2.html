@@ -2228,11 +2228,16 @@ ${text}`;
                 try {
                     // 使用 puter.ai.chat (Gemini)
                     const response = await puter.ai.chat(prompt, { model: 'gemini-2.0-flash' });
-                    const resultText = typeof response === 'string' ? response
-                        : response?.message?.content?.[0]?.text
-                        || response?.content?.[0]?.text
-                        || response?.text
-                        || JSON.stringify(response);
+                    // Puter 回傳格式: {finish_reason, message:{content, role}, usage, ...}
+                    const resultText = (function(r) {
+                        if (typeof r === 'string') return r;
+                        if (r?.message?.content && typeof r.message.content === 'string') return r.message.content;
+                        if (r?.message?.content?.[0]?.text) return r.message.content[0].text;
+                        if (r?.content?.[0]?.text) return r.content[0].text;
+                        if (r?.text) return r.text;
+                        if (r?.choices?.[0]?.message?.content) return r.choices[0].message.content;
+                        return JSON.stringify(r);
+                    })(response);
                     if (aiLoading) aiLoading.style.display = 'none';
                     if (aiResult) aiResult.textContent = resultText;
                     if (aiPanel) { aiPanel.style.display = 'block'; aiPanel._lastResult = resultText; }
@@ -2283,11 +2288,19 @@ ${text}`;
                 try {
                     // 用 messages 格式送多輪對話
                     const resp = await puter.ai.chat(state.chatHistories[windowId], { model: 'gemini-2.0-flash' });
-                    const aiText = typeof resp === 'string' ? resp
-                        : resp?.message?.content?.[0]?.text
-                        || resp?.content?.[0]?.text
-                        || resp?.text
-                        || JSON.stringify(resp);
+                    // Puter 回傳格式: {finish_reason, message:{content, role}, usage, ...}
+                    const aiText = (function(r) {
+                        if (typeof r === 'string') return r;
+                        // 標準格式
+                        if (r?.message?.content && typeof r.message.content === 'string') return r.message.content;
+                        // content 是陣列 [{type:'text', text:'...'}]
+                        if (r?.message?.content?.[0]?.text) return r.message.content[0].text;
+                        // 其他備用路徑
+                        if (r?.content?.[0]?.text) return r.content[0].text;
+                        if (r?.text) return r.text;
+                        if (r?.choices?.[0]?.message?.content) return r.choices[0].message.content;
+                        return JSON.stringify(r);
+                    })(resp);
                     state.chatHistories[windowId].push({ role: 'assistant', content: aiText });
 
                     if (typingEl) typingEl.style.display = 'none';
