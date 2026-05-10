@@ -698,6 +698,63 @@
         }
 
         /* ============ 通知提示 ============ */
+        /* ── 檔案總管 ── */
+        .fe-root { display:flex; height:100%; overflow:hidden; background:#fff; }
+        .fe-sidebar {
+            width:180px; min-width:140px; background:#f0eff0;
+            border-right:1px solid #c0b8b8; overflow-y:auto;
+            font-size:12px; flex-shrink:0;
+        }
+        .fe-sidebar-item {
+            display:flex; align-items:center; gap:5px;
+            padding:4px 8px; cursor:pointer; user-select:none;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .fe-sidebar-item:hover { background:#cde; }
+        .fe-sidebar-item.active { background:#3168d5; color:#fff; }
+        .fe-sidebar-section { font-size:10px; color:#888; padding:8px 8px 2px; font-weight:bold; letter-spacing:.5px; }
+        .fe-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+        .fe-toolbar {
+            display:flex; align-items:center; gap:6px; padding:5px 8px;
+            border-bottom:1px solid #ddd; background:#f8f8f8; flex-wrap:wrap;
+        }
+        .fe-breadcrumb { font-size:12px; color:#333; flex:1; min-width:0;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .fe-breadcrumb span { color:#3168d5; cursor:pointer; }
+        .fe-breadcrumb span:hover { text-decoration:underline; }
+        .fe-view-toggle { display:flex; gap:2px; }
+        .fe-view-btn { border:1px solid #aaa; background:#eee; padding:2px 6px; cursor:pointer; font-size:12px; border-radius:2px; }
+        .fe-view-btn.active { background:#3168d5; color:#fff; border-color:#3168d5; }
+        .fe-content { flex:1; overflow-y:auto; padding:8px; }
+        /* 圖示視圖 */
+        .fe-icon-grid { display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; }
+        .fe-icon-item {
+            display:flex; flex-direction:column; align-items:center;
+            width:80px; padding:6px 4px; border-radius:4px; cursor:pointer;
+            user-select:none; text-align:center;
+        }
+        .fe-icon-item:hover { background:#d0e0ff; }
+        .fe-icon-item.selected { background:#3168d5; color:#fff; }
+        .fe-icon-item .fe-icon-img { font-size:32px; line-height:1; }
+        .fe-icon-item .fe-icon-label { font-size:11px; margin-top:4px; word-break:break-all; line-height:1.3; }
+        /* 列表視圖 */
+        .fe-list { width:100%; border-collapse:collapse; font-size:12px; }
+        .fe-list th { background:#e8e8e8; padding:4px 8px; text-align:left; border-bottom:1px solid #ccc; position:sticky; top:0; }
+        .fe-list td { padding:3px 8px; border-bottom:1px solid #eee; }
+        .fe-list tr:hover td { background:#eef2ff; }
+        .fe-list tr.selected td { background:#3168d5; color:#fff; }
+        .fe-statusbar { font-size:11px; color:#666; padding:3px 8px; border-top:1px solid #ddd; background:#f8f8f8; }
+        /* ── 桌布設定 ── */
+        .wp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; padding:10px; }
+        .wp-item {
+            border:3px solid transparent; border-radius:6px; cursor:pointer;
+            overflow:hidden; position:relative; transition:border-color .15s;
+        }
+        .wp-item:hover { border-color:#3168d5; }
+        .wp-item.active { border-color:#ff6600; }
+        .wp-preview { height:70px; border-radius:3px; }
+        .wp-label { font-size:11px; text-align:center; padding:3px 2px; background:#fff; }
+
         .toast {
             position: fixed;
             top: 20px;
@@ -1009,6 +1066,16 @@
             <div class="icon-img">🤖</div>
             <div class="icon-label">AI 助手</div>
         </div>
+        <!-- 檔案總管 -->
+        <div class="desktop-icon" data-app="file-explorer" data-title="檔案總管" ondblclick="openApp('file-explorer')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">🗂️</div>
+            <div class="icon-label">檔案總管</div>
+        </div>
+        <!-- 桌布設定 -->
+        <div class="desktop-icon" data-app="wallpaper" data-title="桌布設定" ondblclick="openApp('wallpaper')" onclick="selectDesktopIcon(this)">
+            <div class="icon-img">🖼️</div>
+            <div class="icon-label">桌布設定</div>
+        </div>
     </div>
 
     <!-- ==================== 任務欄 ==================== -->
@@ -1074,6 +1141,13 @@
                 <div class="menu-item" onclick="openApp('ai-chat');closeStartMenu();">
                     <span class="menu-icon">🤖</span> AI 助手 (Gemini)
                 </div>
+                <div class="menu-separator"></div>
+                <div class="menu-item" onclick="openApp('file-explorer');closeStartMenu();">
+                    <span class="menu-icon">🗂️</span> 檔案總管
+                </div>
+                <div class="menu-item" onclick="openApp('wallpaper');closeStartMenu();">
+                    <span class="menu-icon">🖼️</span> 桌布設定
+                </div>
             </div>
         </div>
         <div class="start-footer" onclick="showToast('正在登出...');closeStartMenu();">
@@ -1128,7 +1202,22 @@
                 // 預載本地檔案
                 loadLocalFilesFromStorage();
                 loadRecycledFiles();
-                console.log('🎯 雲端桌面系統 v2 已啟動 (Windows XP 風格)');
+                // 套用儲存的桌布
+                (function() {
+                    const savedWp = localStorage.getItem('cloudDesktop_wallpaper');
+                    if (savedWp) {
+                        const wp = WALLPAPERS.find(w => w.id === savedWp);
+                        const desktop = document.getElementById('desktop');
+                        if (!desktop) return;
+                        if (savedWp === 'custom') {
+                            const custom = localStorage.getItem('cloudDesktop_wallpaper_custom');
+                            if (custom) desktop.style.background = `url('${custom}') center/cover no-repeat`;
+                        } else if (wp) {
+                            desktop.style.background = wp.value;
+                        }
+                    }
+                })();
+                console.log('🎯 雲端桌面系統 v3 已啟動 (Windows XP 風格)');
                 console.log('📋 可用儲存：本地磁碟 | Puter雲端 | Google Drive');
             }
 
@@ -1669,6 +1758,18 @@
                         width = isMobile ? window.innerWidth - 10 : 560;
                         height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 480;
                         break;
+                    case 'file-explorer':
+                        title = '檔案總管';
+                        icon = '🗂️';
+                        width = isMobile ? window.innerWidth - 10 : 720;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 520;
+                        break;
+                    case 'wallpaper':
+                        title = '桌布設定';
+                        icon = '🖼️';
+                        width = isMobile ? window.innerWidth - 10 : 580;
+                        height = isMobile ? window.innerHeight - getTaskbarHeight() - 30 : 500;
+                        break;
                     default:
                         title = '未知應用程式';
                         icon = '📦';
@@ -1715,6 +1816,10 @@
                         return getRecycleBinContent(windowId);
                     case 'ai-chat':
                         return getAiChatContent(windowId);
+                    case 'file-explorer':
+                        return getFileExplorerContent(windowId);
+                    case 'wallpaper':
+                        return getWallpaperContent(windowId);
                     default:
                         return '<p>此應用程式正在開發中...</p>';
                 }
@@ -1935,6 +2040,169 @@
                 `;
             }
 
+            // ==================== 檔案總管狀態 ====================
+            const feState = {
+                currentPath: ['本機'],   // 麵包屑路徑陣列
+                viewMode: 'icon',        // 'icon' | 'list'
+                selectedIdx: null,
+            };
+
+            function feGetCurrentFiles() {
+                // 只有在根目錄才顯示 localFiles；子資料夾顯示空（擴展點）
+                if (feState.currentPath.length === 1) {
+                    // 加上固定虛擬磁碟/資料夾
+                    const drives = [
+                        { name:'本機磁碟 (C:)', icon:'💾', type:'drive', size:'--' },
+                        { name:'桌面', icon:'🖥️', type:'folder', size:'--' },
+                        { name:'下載', icon:'⬇️', type:'folder', size:'--' },
+                        { name:'圖片', icon:'🖼️', type:'folder', size:'--' },
+                        { name:'文件', icon:'📁', type:'folder', size:'--' },
+                    ];
+                    return drives;
+                }
+                if (feState.currentPath.join('/') === '本機/本機磁碟 (C:)' ||
+                    feState.currentPath.slice(-1)[0] === '文件') {
+                    return state.localFiles;
+                }
+                return [];
+            }
+
+            function feRenderContent(windowId) {
+                const files = feGetCurrentFiles();
+                const viewMode = feState.viewMode;
+                if (viewMode === 'icon') {
+                    if (files.length === 0) {
+                        return '<div style="color:#999;text-align:center;padding:40px;font-size:13px;">📭 此資料夾是空的</div>';
+                    }
+                    const items = files.map((f,i) => `
+                        <div class="fe-icon-item" data-fe-idx="${i}" ondblclick="window._feOpenItem(${i},'${windowId}')" onclick="window._feSelect(this,'${windowId}')">
+                            <div class="fe-icon-img">${f.icon || '📄'}</div>
+                            <div class="fe-icon-label">${f.name}</div>
+                        </div>`).join('');
+                    return `<div class="fe-icon-grid">${items}</div>`;
+                } else {
+                    const rows = files.map((f,i) => `
+                        <tr data-fe-idx="${i}" ondblclick="window._feOpenItem(${i},'${windowId}')" onclick="window._feSelectRow(this,'${windowId}')">
+                            <td>${f.icon || '📄'} ${f.name}</td>
+                            <td>${f.size || '--'}</td>
+                            <td>${f.type === 'folder' || f.type === 'drive' ? '資料夾' : '檔案'}</td>
+                        </tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;padding:20px;">📭 此資料夾是空的</td></tr>';
+                    return `<table class="fe-list"><thead><tr><th>名稱</th><th style="width:70px">大小</th><th style="width:60px">類型</th></tr></thead><tbody>${rows}</tbody></table>`;
+                }
+            }
+
+            function feRefresh(windowId) {
+                const contentArea = document.getElementById('fe-content-' + windowId);
+                const breadcrumb = document.getElementById('fe-breadcrumb-' + windowId);
+                const status = document.getElementById('fe-status-' + windowId);
+                if (contentArea) contentArea.innerHTML = feRenderContent(windowId);
+                if (breadcrumb) {
+                    breadcrumb.innerHTML = feState.currentPath.map((seg, i) =>
+                        i < feState.currentPath.length - 1
+                            ? `<span onclick="window._feNavTo(${i},'${windowId}')">${seg}</span> ›`
+                            : seg
+                    ).join(' ');
+                }
+                if (status) {
+                    const count = feGetCurrentFiles().length;
+                    status.textContent = `${count} 個項目`;
+                }
+            }
+
+            function getFileExplorerContent(windowId) {
+                const sidebarItems = [
+                    { label:'本機', icon:'🖥️', path:['本機'] },
+                    { label:'桌面', icon:'🖥️', path:['本機','桌面'] },
+                    { label:'下載', icon:'⬇️', path:['本機','下載'] },
+                    { label:'圖片', icon:'🖼️', path:['本機','圖片'] },
+                    { label:'文件', icon:'📁', path:['本機','文件'] },
+                    { label:'本機磁碟 (C:)', icon:'💾', path:['本機','本機磁碟 (C:)'] },
+                ].map(item => `
+                    <div class="fe-sidebar-item ${feState.currentPath.join('/')=== item.path.join('/') ? 'active':''}"
+                         onclick="window._feNavPath(${JSON.stringify(item.path)},'${windowId}')">
+                        ${item.icon} ${item.label}
+                    </div>`).join('');
+
+                return `
+                <div class="fe-root">
+                    <div class="fe-sidebar">
+                        <div class="fe-sidebar-section">我的位置</div>
+                        ${sidebarItems}
+                        <div class="fe-sidebar-section">裝置</div>
+                        <div class="fe-sidebar-item" onclick="window._feNavPath(['Puter 雲端'],'${windowId}')">☁️ Puter 雲端</div>
+                        <div class="fe-sidebar-section">回收桶</div>
+                        <div class="fe-sidebar-item" onclick="openApp('recycle-bin')">🗑️ 資源回收桶</div>
+                    </div>
+                    <div class="fe-main">
+                        <div class="fe-toolbar">
+                            <button class="btn" style="font-size:11px;padding:2px 8px;" onclick="window._feGoUp('${windowId}')">⬆ 上層</button>
+                            <button class="btn" style="font-size:11px;padding:2px 8px;" onclick="feRefresh('${windowId}')">🔄</button>
+                            <div class="fe-breadcrumb" id="fe-breadcrumb-${windowId}"></div>
+                            <div class="fe-view-toggle">
+                                <button class="fe-view-btn ${feState.viewMode==='icon'?'active':''}" onclick="window._feSetView('icon','${windowId}')">⊞</button>
+                                <button class="fe-view-btn ${feState.viewMode==='list'?'active':''}" onclick="window._feSetView('list','${windowId}')">☰</button>
+                            </div>
+                        </div>
+                        <div class="fe-content" id="fe-content-${windowId}"></div>
+                        <div class="fe-statusbar" id="fe-status-${windowId}"></div>
+                    </div>
+                </div>`;
+            }
+
+            // ── 檔案總管 window 函數 ──
+            window._feSelect = function(el, windowId) {
+                const container = document.getElementById('fe-content-' + windowId);
+                if (!container) return;
+                container.querySelectorAll('.fe-icon-item').forEach(i => i.classList.remove('selected'));
+                el.classList.add('selected');
+            };
+            window._feSelectRow = function(el, windowId) {
+                const table = el.closest('tbody');
+                if (!table) return;
+                table.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                el.classList.add('selected');
+            };
+            window._feOpenItem = function(idx, windowId) {
+                const files = feGetCurrentFiles();
+                const item = files[idx];
+                if (!item) return;
+                if (item.type === 'folder' || item.type === 'drive') {
+                    feState.currentPath.push(item.name);
+                    feRefresh(windowId);
+                    // 更新側邊欄 active
+                    const ce = document.getElementById('content-' + windowId);
+                    if (ce) {
+                        ce.querySelectorAll('.fe-sidebar-item').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                    }
+                } else {
+                    showToast('📄 開啟檔案：' + item.name);
+                }
+            };
+            window._feGoUp = function(windowId) {
+                if (feState.currentPath.length > 1) {
+                    feState.currentPath.pop();
+                    feRefresh(windowId);
+                }
+            };
+            window._feNavTo = function(idx, windowId) {
+                feState.currentPath = feState.currentPath.slice(0, idx + 1);
+                feRefresh(windowId);
+            };
+            window._feNavPath = function(path, windowId) {
+                feState.currentPath = [...path];
+                const ce = document.getElementById('content-' + windowId);
+                if (ce) ce.innerHTML = getFileExplorerContent(windowId);
+                feRefresh(windowId);
+            };
+            window._feSetView = function(mode, windowId) {
+                feState.viewMode = mode;
+                const ce = document.getElementById('content-' + windowId);
+                if (ce) ce.innerHTML = getFileExplorerContent(windowId);
+                feRefresh(windowId);
+            };
+
             function getAiChatContent(windowId) {
                 return `
                     <div style="display:flex;flex-direction:column;height:100%;gap:0;">
@@ -1959,6 +2227,113 @@
                     </div>
                 `;
             }
+
+            // ==================== 桌布設定 ====================
+            const WALLPAPERS = [
+                { id:'default',  label:'XP 藍山',      type:'gradient', value:'linear-gradient(135deg,#3a6ea5 0%,#5a90c8 100%)' },
+                { id:'sunset',   label:'夕陽橘',        type:'gradient', value:'linear-gradient(135deg,#e96c2b 0%,#f5c040 100%)' },
+                { id:'forest',   label:'森林綠',        type:'gradient', value:'linear-gradient(135deg,#2d6a4f 0%,#74c69d 100%)' },
+                { id:'midnight', label:'深夜藍',        type:'gradient', value:'linear-gradient(135deg,#0a0e27 0%,#1a2560 100%)' },
+                { id:'lavender', label:'薰衣草',        type:'gradient', value:'linear-gradient(135deg,#9b59b6 0%,#d7b8f3 100%)' },
+                { id:'rose',     label:'玫瑰粉',        type:'gradient', value:'linear-gradient(135deg,#c0392b 0%,#f9a8d4 100%)' },
+                { id:'ocean',    label:'海洋',          type:'gradient', value:'linear-gradient(135deg,#0077b6 0%,#ade8f4 100%)' },
+                { id:'dark',     label:'暗色系',        type:'color',    value:'#1a1a2e' },
+                { id:'light',    label:'純白',          type:'color',    value:'#f5f5f5' },
+                { id:'grid',     label:'方格紙',        type:'pattern',  value:'repeating-linear-gradient(0deg,transparent,transparent 19px,#aac 19px,#aac 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#aac 19px,#aac 20px),#e8eef8' },
+                { id:'dots',     label:'點點',          type:'pattern',  value:'radial-gradient(circle,#5580aa 1px,transparent 1px) 0 0/24px 24px,#2a4a6a' },
+                { id:'custom',   label:'自訂圖片',      type:'custom',   value:null },
+            ];
+
+            function getWallpaperContent(windowId) {
+                const current = localStorage.getItem('cloudDesktop_wallpaper') || 'default';
+                const wpItems = WALLPAPERS.map(wp => {
+                    const previewStyle = wp.type === 'custom'
+                        ? (localStorage.getItem('cloudDesktop_wallpaper_custom')
+                            ? `background:url('${localStorage.getItem("cloudDesktop_wallpaper_custom")}') center/cover`
+                            : 'background:repeating-linear-gradient(45deg,#ccc 0,#ccc 5px,#fff 5px,#fff 10px)')
+                        : `background:${wp.value}`;
+                    return `
+                        <div class="wp-item ${current === wp.id ? 'active' : ''}" onclick="window._applyWallpaper('${wp.id}','${windowId}')">
+                            <div class="wp-preview" style="${previewStyle}"></div>
+                            <div class="wp-label">${wp.label}</div>
+                        </div>`;
+                }).join('');
+                return `
+                    <div style="display:flex;flex-direction:column;height:100%;">
+                        <div style="padding:10px 12px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <span style="font-weight:bold;font-size:13px;">🖼️ 桌布設定</span>
+                            <span style="font-size:11px;color:#888;">雙擊選取，自訂圖片可上傳本機圖檔</span>
+                            <label class="btn" style="cursor:pointer;font-size:11px;margin-left:auto;">
+                                📁 上傳圖片
+                                <input type="file" accept="image/*" style="display:none" onchange="window._uploadWallpaper(event,'${windowId}')">
+                            </label>
+                        </div>
+                        <div style="flex:1;overflow-y:auto;">
+                            <div class="wp-grid" id="wp-grid-${windowId}">${wpItems}</div>
+                        </div>
+                        <div style="padding:8px 12px;border-top:1px solid #ddd;background:#f8f8f8;font-size:11px;color:#555;">
+                            目前桌布：<strong>${WALLPAPERS.find(w=>w.id===current)?.label || current}</strong>
+                            &nbsp;&nbsp;
+                            <button class="btn" style="font-size:11px;padding:2px 10px;" onclick="window._resetWallpaper('${windowId}')">↩ 還原預設</button>
+                        </div>
+                    </div>`;
+            }
+
+            window._applyWallpaper = function(id, windowId) {
+                const wp = WALLPAPERS.find(w => w.id === id);
+                if (!wp) return;
+                localStorage.setItem('cloudDesktop_wallpaper', id);
+                const desktop = document.getElementById('desktop');
+                if (!desktop) return;
+                if (wp.type === 'custom') {
+                    const custom = localStorage.getItem('cloudDesktop_wallpaper_custom');
+                    if (custom) {
+                        desktop.style.background = `url('${custom}') center/cover no-repeat`;
+                    } else {
+                        showToast('⚠️ 尚未上傳自訂圖片，請點「上傳圖片」');
+                        return;
+                    }
+                } else {
+                    desktop.style.background = wp.value;
+                }
+                // 更新選取框
+                const grid = document.getElementById('wp-grid-' + windowId);
+                if (grid) {
+                    grid.querySelectorAll('.wp-item').forEach((el, i) => {
+                        el.classList.toggle('active', WALLPAPERS[i]?.id === id);
+                    });
+                }
+                showToast('🖼️ 桌布已套用：' + wp.label);
+            };
+
+            window._uploadWallpaper = function(event, windowId) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const dataUrl = e.target.result;
+                    localStorage.setItem('cloudDesktop_wallpaper_custom', dataUrl);
+                    // 直接套用
+                    const desktop = document.getElementById('desktop');
+                    if (desktop) desktop.style.background = `url('${dataUrl}') center/cover no-repeat`;
+                    localStorage.setItem('cloudDesktop_wallpaper', 'custom');
+                    // 更新預覽格
+                    const ce = document.getElementById('content-' + windowId);
+                    if (ce) ce.innerHTML = getWallpaperContent(windowId);
+                    showToast('🖼️ 自訂桌布已套用！');
+                };
+                reader.readAsDataURL(file);
+            };
+
+            window._resetWallpaper = function(windowId) {
+                localStorage.setItem('cloudDesktop_wallpaper', 'default');
+                localStorage.removeItem('cloudDesktop_wallpaper_custom');
+                const desktop = document.getElementById('desktop');
+                if (desktop) desktop.style.background = 'linear-gradient(135deg,#3a6ea5 0%,#5a90c8 100%)';
+                const ce = document.getElementById('content-' + windowId);
+                if (ce) ce.innerHTML = getWallpaperContent(windowId);
+                showToast('↩ 已還原預設桌布');
+            };
 
             function getStorageModeLabel() {
                 switch (state.storageMode) {
@@ -1997,6 +2372,9 @@
                             }
                         });
                     }
+                }
+                if (appType === 'file-explorer') {
+                    feRefresh(windowId);
                 }
                 if (appType === 'recycle-bin') {
                     const recycleBody = document.getElementById('recycle-table-' + windowId);
@@ -2439,6 +2817,16 @@ ${text}`;
             window._aiNotepad = window._aiNotepad;
             window._sendAiChat = window._sendAiChat;
             window._applyAiResult = window._applyAiResult;
+            window._applyWallpaper = window._applyWallpaper;
+            window._uploadWallpaper = window._uploadWallpaper;
+            window._resetWallpaper = window._resetWallpaper;
+            window._feSelect = window._feSelect;
+            window._feSelectRow = window._feSelectRow;
+            window._feOpenItem = window._feOpenItem;
+            window._feGoUp = window._feGoUp;
+            window._feNavTo = window._feNavTo;
+            window._feNavPath = window._feNavPath;
+            window._feSetView = window._feSetView;
 
             // ==================== 啟動系統 ====================
             init();
